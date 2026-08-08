@@ -18,6 +18,11 @@ PYTHON_EXE = sys.executable
 ANSI_RE = re.compile(r'\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _DOWNLOAD_ERROR_RE = re.compile(r'Download error for (.+?):')
 _RETRY_RE = re.compile(r'retrying in \d+s', re.IGNORECASE)
+# 进度解析：作品总数 / 当前文件 / 已传字节
+_TOTAL_RE = re.compile(r'(?:共|total of|found)\s*(\d+)\s*(?:个作品|works|videos|items)?', re.IGNORECASE)
+_CURFILE_RE = re.compile(r'(?:正在下载|downloading|下载)[::\s]+(.+?\.(?:mp4|jpg|jpeg|png|webp|mp3|m4a))', re.IGNORECASE)
+_SIZE_RE = re.compile(r'([\d.]+)\s*(KB|MB|GB)\b', re.IGNORECASE)
+_UNIT = {'kb': 1024, 'mb': 1024 ** 2, 'gb': 1024 ** 3}
 
 app = Flask(__name__, static_folder=str(BASE_DIR / 'web'), static_url_path='')
 
@@ -26,7 +31,80 @@ _state = {
     'process': None,
     'logs': [],
     'stats': {'total': 0, 'completed': 0, 'failed': 0, 'skipped': 0},
+    'progress': {'total': 0, 'done': 0, 'percent': 0, 'current_file': '',
+                 'bytes': 0, 'started_at': 0, 'elapsed': 0, 'speed': 0, 'eta': 0},
 }
+
+
+def _reset_progress():
+    with _lock:
+        _state['progress'] = {'total': 0, 'done': 0, 'percent': 0, 'current_file': '',
+                              'bytes': 0, 'started_at': time.time(), 'elapsed': 0,
+                              'speed': 0, 'eta': 0}
+
+
+def _parse_progress(line):
+    """从日志行提取进度信息，返回是否有变化。"""
+    changed = False
+    p = _state['progress']
+
+    m = _TOTAL_RE.search(line)
+    if m:
+        try:
+            n = int(m.group(1))
+            if n > 0 and n != p['total']:
+                p['total'] = n
+                changed = True
+        except ValueError:
+            pass
+
+    m = _CURFILE_RE.search(line)
+    if m:
+        name = m.group(1).strip().strip('"\'')
+        name = name.split('/')[-1].split('\\')[-1]
+        if name and name != p['current_file']:
+            p['current_file'] = name
+            changed = True
+
+    m = _SIZE_RE.search(line)
+    if m:
+        try:
+            p['bytes'] += float(m.group(1)) * _UNIT[m.group(2).lower()]
+            changed = True
+        except (ValueError, KeyError):
+            pass
+
+    return changed
+
+
+def _push_stats():
+    """同时广播 stats 与派生进度。"""
+    with _lock:
+        stats = dict(_state['stats'])
+        prog = _recalc_progress()
+    _broadcast('stats', stats)
+    _broadcast('progress', prog)
+
+
+def _recalc_progress():
+    """基于 stats 与耗时刷新派生字段。"""
+    p = _state['progress']
+    s = _state['stats']
+    p['done'] = s['completed'] + s['skipped'] + s['failed']
+    if p['total'] > 0:
+        p['percent'] = min(100, round(p['done'] / p['total'] * 100))
+    elif p['done'] > 0:
+        p['percent'] = 0
+    started = p['started_at'] or 0
+    p['elapsed'] = round(time.time() - started, 1) if started else 0
+    if p['elapsed'] > 0 and p['bytes'] > 0:
+        p['speed'] = p['bytes'] / p['elapsed']
+    if p['done'] > 0 and p['total'] > p['done'] and p['elapsed'] > 0:
+        per = p['elapsed'] / p['done']
+        p['eta'] = int(per * (p['total'] - p['done']))
+    else:
+        p['eta'] = 0
+    return dict(p)
 _sse_queues = []
 _lock = threading.Lock()
 _sse_lock = threading.Lock()
@@ -59,11 +137,16 @@ def _add_log(line):
         return
     ts = time.strftime('%H:%M:%S')
     entry = {'time': ts, 'text': line}
+    prog = None
     with _lock:
         _state['logs'].append(entry)
         if len(_state['logs']) > 500:
             _state['logs'] = _state['logs'][-300:]
+        if _state['status'] == 'downloading' and _parse_progress(line):
+            prog = _recalc_progress()
     _broadcast('log', entry)
+    if prog is not None:
+        _broadcast('progress', prog)
 
 
 def _sub_env():
@@ -232,9 +315,11 @@ def _start_download_task(auto=False):
         _state['stats'] = {'total': 0, 'completed': 0, 'failed': 0, 'skipped': 0}
         if not auto:
             _state['logs'] = []
+    _reset_progress()
 
     _add_log(f'{tag}开始下载...')
     _broadcast('status', {'status': 'downloading'})
+    _broadcast('progress', _recalc_progress())
 
     def run():
         try:
@@ -251,15 +336,15 @@ def _start_download_task(auto=False):
                 if any(k in lo for k in ('already downloaded', 'already exists locally', 'skipping')):
                     with _lock:
                         _state['stats']['skipped'] += 1
-                    _broadcast('stats', _state['stats'])
+                    _push_stats()
                 elif any(k in lo for k in ('downloaded', '下载完成', 'saved', '已保存')):
                     with _lock:
                         _state['stats']['completed'] += 1
-                    _broadcast('stats', _state['stats'])
+                    _push_stats()
                 elif ('error' in lo or '失败' in line) and not _RETRY_RE.search(line):
                     with _lock:
                         _state['stats']['failed'] += 1
-                    _broadcast('stats', _state['stats'])
+                    _push_stats()
                     m = _DOWNLOAD_ERROR_RE.search(line)
                     if m:
                         failed_items.append(m.group(1).strip())
@@ -327,6 +412,7 @@ def get_status():
             'port': DEFAULT_PORT,
             'status': _state['status'],
             'stats': _state['stats'],
+            'progress': _recalc_progress(),
             'log_count': len(_state['logs']),
         })
 

@@ -7,58 +7,60 @@
 <style>
 :root {
   --bg: #13120F; --surface: #1C1C1B; --surface2: #242423;
+  --card-bg: #191918; --nav-active: #222220;
   --border: #30302E; --border-light: #363634;
-  --accent: #fe2c55; --accent-dim: #c72045;
-  --text: #e4e4f0; --text-secondary: #969693; --text-muted: #6B6B68;
+  --accent: #fe2c55; --accent-dim: #c72045; --accent-lite: #FF6B8E;
+  --text: #E4E4E0; --text-secondary: #969693; --text-muted: #6B6B68;
+  --text-dim: #B0B0AE;
   --success: #00e676; --warning: #ffab40; --error: #ff5252;
   --input-bg: #111110; --input-border: #363634;
-  --radius: 12px; --radius-sm: 8px;
+  --radius: 8px; --radius-sm: 6px;
   --titlebar-h: 40px; --log-w: 400px;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+html, body { height: 100%; overflow: hidden; font-family: 'Inter', -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
 body { display: flex; flex-direction: column; }
+svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ── Titlebar ── */
-.titlebar { display: none; height: var(--titlebar-h); background: #0a0a1e; flex-shrink: 0; align-items: center; justify-content: space-between; padding: 0 6px 0 16px; user-select: none; -webkit-app-region: drag; border-bottom: 1px solid #12122a; }
-.titlebar.visible { display: flex; }
-.titlebar-left { display: flex; align-items: center; gap: 10px; }
-.titlebar-logo { width: 20px; height: 20px; border-radius: 5px; }
-.titlebar-title { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+.titlebar { display: flex; height: var(--titlebar-h); background: transparent; flex-shrink: 0; align-items: center; justify-content: space-between; padding: 0; user-select: none; -webkit-app-region: drag; position: relative; }
+.titlebar-left { display: flex; align-items: center; gap: 8px; padding: 0 16px; }
+.titlebar-logo { width: 16px; height: 16px; color: var(--accent); }
+.titlebar-title { font-size: 13px; color: var(--text); font-weight: 500; }
+.titlebar-page { position: absolute; left: 50%; transform: translateX(-50%); font-size: 12px; color: var(--text-secondary); font-weight: 400; pointer-events: none; }
 .titlebar-controls { display: flex; -webkit-app-region: no-drag; }
-.titlebar-btn { width: 44px; height: var(--titlebar-h); border: none; background: none; color: var(--text-muted); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .12s, color .12s; }
-.titlebar-btn:hover { background: #1e1e3a; color: var(--text); }
+.titlebar-btn { width: 46px; height: var(--titlebar-h); border: none; background: none; color: var(--text-dim); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .12s, color .12s; }
+.titlebar-btn:hover { background: var(--surface2); color: var(--text); }
 .titlebar-btn.close:hover { background: var(--error); color: #fff; }
 
 /* ── App Shell ── */
 #app { display: flex; flex: 1; min-height: 0; position: relative; overflow: hidden; }
 
 /* ── Sidebar ── */
-.sidebar { width: 220px; background: var(--surface); flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid var(--border); padding: 20px 0 12px; }
-.sidebar-logo { padding: 0 20px 20px; display: flex; align-items: center; gap: 10px; }
-.sidebar-logo img { width: 32px; height: 32px; border-radius: 8px; }
-.sidebar-logo span { font-size: 16px; font-weight: 700; }
-.nav-item { padding: 10px 20px; color: var(--text-secondary); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all .12s; border-left: 3px solid transparent; }
+.sidebar { width: 220px; background: transparent; flex-shrink: 0; display: flex; flex-direction: column; gap: 4px; padding: 20px 12px 16px; }
+.nav-item { height: 46px; padding: 0 16px; color: var(--text-secondary); font-size: 15px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: background .12s, color .12s; border-radius: var(--radius-sm); position: relative; flex-shrink: 0; }
+.nav-item .ic { width: 18px; height: 18px; }
 .nav-item:hover { background: var(--surface2); color: var(--text); }
-.nav-item.active { color: var(--accent); background: rgba(254,44,85,.08); border-left-color: var(--accent); font-weight: 600; }
+.nav-item.active { color: var(--text); background: var(--nav-active); font-weight: 500; }
+.nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 18px; border-radius: 2px; background: var(--accent); }
 .nav-item .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
 .nav-item .dot.green { background: var(--success); box-shadow: 0 0 6px var(--success); }
 .nav-item .dot.red { background: var(--error); box-shadow: 0 0 6px var(--error); }
 .nav-spacer { flex: 1; }
-.nav-footer { padding: 0 20px; font-size: 11px; color: var(--text-muted); }
+.nav-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 4px; font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
 
 /* ── Main Content Area ── */
-.main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; transition: margin-right .3s; }
-.main-area.log-open { margin-right: var(--log-w); }
+.main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
 
 /* ── Page Container ── */
-.page { flex: 1; overflow-y: auto; padding: 24px 28px; display: none; flex-direction: column; gap: 16px; }
+.page { flex: 1; overflow-y: auto; padding: 24px; display: none; flex-direction: column; gap: 24px; }
 .page.active { display: flex; }
 .page::-webkit-scrollbar { width: 6px; }
-.page::-webkit-scrollbar-thumb { background: #2a2a50; border-radius: 3px; }
+.page::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
 
 /* ── Card ── */
-.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+.card { background: var(--card-bg); border: none; border-radius: var(--radius); padding: 20px 24px; flex-shrink: 0; }
+#card-dl { padding: 16px 24px; }
 .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .card-header h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .8px; }
 .card-divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
@@ -129,15 +131,7 @@ body { display: flex; flex-direction: column; }
 .monitor-right input:focus { border-color: var(--accent); }
 .monitor-right input:disabled { opacity: .5; }
 
-/* ── Log Drawer ── */
-.log-drawer { position: absolute; top: 0; right: 0; bottom: 0; width: var(--log-w); background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; transform: translateX(100%); transition: transform .3s ease; z-index: 100; }
-.log-drawer.open { transform: translateX(0); }
-.log-drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
-.log-drawer-header h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
-.log-drawer-actions { display: flex; gap: 6px; }
-.log-viewer { flex: 1; min-height: 0; overflow-y: auto; background: #09091a; margin: 6px 8px 8px; border-radius: 6px; padding: 10px 12px; font-family: 'Cascadia Code','Consolas','Courier New',monospace; font-size: 11.5px; line-height: 1.5; }
-.log-viewer::-webkit-scrollbar { width: 5px; }
-.log-viewer::-webkit-scrollbar-thumb { background: #2a2a50; border-radius: 3px; }
+/* ── Log lines ── */
 .log-line { animation: fadeIn .15s; word-break: break-all; padding: 1px 0; }
 .log-line .ts { color: var(--text-muted); margin-right: 6px; user-select: none; }
 .log-line.success { color: var(--success); }
@@ -146,13 +140,6 @@ body { display: flex; flex-direction: column; }
 .log-line.system { color: #5b9bd5; }
 .log-placeholder { color: var(--text-muted); font-style: italic; text-align: center; padding: 40px 0; font-size: 12px; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
-/* ── Log Tab ── */
-.log-tab { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 28px; height: 80px; background: var(--surface); border: 1px solid var(--border); border-right: none; border-radius: var(--radius-sm) 0 0 var(--radius-sm); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 101; transition: right .3s; color: var(--text-muted); font-size: 11px; writing-mode: vertical-rl; user-select: none; }
-.log-tab:hover { background: var(--surface2); color: var(--text-secondary); }
-.log-tab.open { right: var(--log-w); }
-.log-tab .badge { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: none; }
-.log-tab .badge.active { display: block; }
 
 /* ── Toast ── */
 .toast { position: fixed; top: 56px; right: 24px; padding: 14px 22px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; color: #fff; z-index: 9999; animation: toastIn .3s; pointer-events: none; max-width: 380px; }
@@ -193,42 +180,96 @@ body { display: flex; flex-direction: column; }
 .cookie-guide strong { color: #fff; }
 
 /* ── Download Page Redesigned ── */
-.dl-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
-.dl-header-icon { width: 20px; height: 20px; flex-shrink: 0; color: var(--accent); }
-.dl-header-title { font-size: 15px; font-weight: 700; color: var(--text); }
-.dl-header-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+.dl-header { display: flex; align-items: center; gap: 12px; height: 41px; }
+.dl-header-icon { width: 32px; height: 32px; flex-shrink: 0; border-radius: var(--radius); background: var(--surface2); display: flex; align-items: center; justify-content: center; color: var(--accent); }
+.dl-header-icon .ic { width: 18px; height: 18px; }
+.dl-header-text { display: flex; flex-direction: column; gap: 2px; }
+.dl-header-title { font-size: 16px; font-weight: 700; color: var(--text); line-height: 23px; }
+.dl-header-sub { font-size: 12px; color: var(--text-muted); line-height: 16px; }
 
-.config-row { display: flex; gap: 12px; align-items: center; margin-top: 24px; }
-.config-row label { font-size: 13px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; min-width: 56px; }
-.config-input { flex: 1; display: flex; align-items: center; gap: 8px; height: 36px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 0 12px; font-family: 'Cascadia Code','Consolas',monospace; font-size: 12px; color: var(--text-muted); outline: none; transition: border-color .15s; }
+.config-row { display: flex; gap: 12px; align-items: center; margin-top: 12px; height: 36px; }
+.config-row label { font-size: 13px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; width: 53px; flex-shrink: 0; }
+.config-input { flex: 1; display: flex; align-items: center; gap: 8px; height: 36px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: var(--radius-sm); padding: 0 12px; font-family: 'Cascadia Code','Consolas',monospace; font-size: 12px; color: var(--text-muted); outline: none; transition: border-color .15s; overflow: hidden; }
+.config-input span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .config-input:focus-within { border-color: var(--accent); }
+.config-row .btn { width: 86px; height: 36px; padding: 0; flex-shrink: 0; }
 
-.action-bar-new { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 16px; }
-.btn-download-new { padding: 0 28px; height: 44px; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; transition: background .15s; flex-shrink: 0; }
+.action-bar-new { display: flex; align-items: center; margin-top: 12px; height: 44px; }
+.btn-download-new { min-width: 145px; padding: 0 24px; height: 44px; background: var(--accent); border: none; border-radius: var(--radius); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap; transition: background .15s; flex-shrink: 0; }
+.btn-download-new .ic { width: 16px; height: 16px; }
 .btn-download-new:hover { background: var(--accent-dim); }
 .btn-download-new:disabled { opacity: .5; cursor: not-allowed; }
 .btn-download-new.running { background: var(--error); }
-.listen-group { display: flex; align-items: center; gap: 8px; }
+.action-center { flex: 1; display: flex; justify-content: center; align-items: center; min-width: 0; }
+.listen-group { display: flex; align-items: center; gap: 8px; height: 32px; }
 .listen-group label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-.listen-group input { width: 52px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 4px 6px; color: var(--text); font-size: 13px; text-align: center; outline: none; }
+.listen-group input { width: 52px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: var(--radius-sm); padding: 4px 6px; color: var(--text); font-size: 13px; text-align: center; outline: none; }
 .listen-group input:focus { border-color: var(--accent); }
 .listen-group input:disabled { opacity: .5; }
 .listen-status { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
-.action-divider { width: 1px; height: 22px; background: #2a2a28; flex-shrink: 0; }
+.action-divider { width: 1px; height: 24px; background: var(--border); flex-shrink: 0; }
 
-.toolbar-row { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
-.toolbar-row .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 6px; }
+.toolbar-row { display: flex; gap: 8px; align-items: center; margin-top: 12px; height: 36px; }
+.toolbar-row .btn { height: 36px; padding: 0 12px; font-size: 13px; border-radius: var(--radius-sm); display: inline-flex; align-items: center; gap: 6px; }
+.toolbar-row .btn .ic { width: 14px; height: 14px; }
 
-.cookie-warn-banner { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 9px 14px; background: rgba(255,171,64,.08); border: 1px solid rgba(255,171,64,.25); border-radius: 6px; font-size: 12px; color: var(--warning); line-height: 1.4; }
-.cookie-warn-banner .warn-icon { flex-shrink: 0; font-size: 14px; }
+.cookie-warn-banner { display: flex; align-items: center; gap: 8px; margin-top: 12px; min-height: 35px; padding: 8px 12px; background: rgba(255,171,64,.08); border: 1px solid rgba(255,171,64,.25); border-radius: var(--radius-sm); font-size: 12px; color: var(--warning); line-height: 1.4; }
+.cookie-warn-banner .ic { width: 16px; height: 16px; }
 
-.status-bar-new { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 0; border-top: 1px solid var(--border); }
-.status-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.status-right { display: flex; gap: 18px; font-size: 11px; color: var(--text-muted); }
+.status-bar-new { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; height: 28px; border-top: none; }
+.status-left { display: flex; align-items: center; gap: 10px; }
+.status-left .btn-sm { height: 28px; }
+.status-right { display: flex; gap: 20px; font-size: 11px; color: var(--text-muted); }
 .status-right .stat-val { color: var(--text); font-weight: 600; margin-left: 2px; }
 .status-right .stat-val.ok { color: var(--success); }
 .status-right .stat-val.skip { color: var(--warning); }
 .status-right .stat-val.fail { color: var(--error); }
+
+/* ── Progress Card ── */
+.prog-head { display: flex; align-items: flex-start; justify-content: space-between; height: 41px; }
+.prog-title-group { display: flex; align-items: center; gap: 12px; }
+.prog-icon { width: 32px; height: 32px; flex-shrink: 0; border-radius: var(--radius); background: var(--surface2); display: flex; align-items: center; justify-content: center; color: var(--accent); }
+.prog-icon .ic { width: 16px; height: 16px; }
+.prog-text { display: flex; flex-direction: column; gap: 2px; }
+.prog-title { font-size: 16px; font-weight: 700; color: var(--text); line-height: 23px; }
+.prog-sub { font-size: 12px; color: var(--text-muted); line-height: 16px; }
+.prog-pct { display: flex; align-items: flex-end; gap: 2px; align-self: flex-start; margin-top: 4px; }
+.prog-pct b { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
+.prog-pct i { font-size: 14px; font-weight: 500; color: var(--text-secondary); font-style: normal; line-height: 1.4; }
+.prog-bar { height: 10px; border-radius: 4px; background: var(--input-bg); margin-top: 16px; overflow: hidden; }
+.prog-bar-fill { height: 100%; width: 0; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent-lite)); transition: width .35s ease; }
+.prog-info { display: flex; gap: 20px; margin-top: 16px; height: 17px; }
+.prog-info-item { flex: 1; display: flex; align-items: center; gap: 6px; min-width: 0; }
+.prog-info-item .ic { width: 13px; height: 13px; }
+.prog-info-item .k { font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+.prog-info-item .v { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.prog-info-item.file .ic { color: var(--text); }
+.prog-info-item.eta .ic, .prog-info-item.eta .v { color: var(--text-secondary); }
+.prog-info-item.speed .ic, .prog-info-item.speed .v { color: var(--accent); }
+.prog-info-item.size .ic, .prog-info-item.size .v { color: var(--success); }
+
+/* ── Log Card (inline) ── */
+.log-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; height: 41px; }
+.log-head-left { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
+.log-icon { width: 32px; height: 32px; flex-shrink: 0; border-radius: var(--radius); background: var(--surface2); display: flex; align-items: center; justify-content: center; color: var(--accent); }
+.log-icon .ic { width: 16px; height: 16px; }
+.log-head-text { display: flex; flex-direction: column; gap: 2px; }
+.log-head-title { font-size: 16px; font-weight: 700; color: var(--text); line-height: 23px; }
+.log-head-sub { font-size: 12px; color: var(--text-muted); line-height: 16px; }
+.log-filters { display: flex; gap: 2px; padding: 3px; background: var(--surface2); border-radius: var(--radius-sm); height: 30px; }
+.log-chip { height: 24px; padding: 0 10px; border: none; background: transparent; color: var(--text-secondary); font-size: 12px; font-family: inherit; border-radius: 4px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; transition: background .12s, color .12s; }
+.log-chip:hover { color: var(--text); }
+.log-chip.active { background: var(--nav-active); color: var(--text); font-weight: 500; }
+.log-chip .n { font-size: 11px; color: var(--text-muted); }
+.log-chip.active .n { color: var(--text-secondary); }
+.log-head-right { display: flex; gap: 6px; flex-shrink: 0; }
+.log-act { width: 26px; height: 26px; border: none; background: transparent; color: var(--text-secondary); border-radius: 4px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .12s, color .12s; }
+.log-act:hover { background: var(--surface2); color: var(--text); }
+.log-act.on { color: var(--accent); }
+.log-act .ic { width: 14px; height: 14px; }
+.log-body { height: 160px; overflow-y: auto; padding: 8px 0; display: flex; flex-direction: column; gap: 1px; font-family: 'Cascadia Code','Consolas','Courier New',monospace; font-size: 11px; line-height: 1.55; }
+.log-body::-webkit-scrollbar { width: 5px; }
+.log-body::-webkit-scrollbar-thumb { background: var(--surface2); border-radius: 3px; }
 
 /* ── Responsive form ── */
 @media (max-width: 800px) {
@@ -243,37 +284,34 @@ body { display: flex; flex-direction: column; }
 <!-- Custom Titlebar -->
 <div class="titlebar" id="customTitlebar">
   <div class="titlebar-left">
-    <img class="titlebar-logo" src="/logo.png" alt="" onerror="this.style.display='none'">
+    <svg class="ic titlebar-logo" viewBox="0 0 24 24"><circle cx="8" cy="18" r="4"/><path d="M12 18V2l7 4"/></svg>
     <span class="titlebar-title">抖音下载器</span>
   </div>
+  <div class="titlebar-page" id="titlebarPage">下载作品</div>
   <div class="titlebar-controls">
-    <button class="titlebar-btn" onclick="qtBridge?.minimize()" title="最小化">─</button>
-    <button class="titlebar-btn" onclick="qtBridge?.toggleMaximize()" title="最大化">□</button>
-    <button class="titlebar-btn close" onclick="qtBridge?.closeWindow()" title="关闭">✕</button>
+    <button class="titlebar-btn" onclick="qtBridge?.minimize()" title="最小化"><svg class="ic" width="12" height="12" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+    <button class="titlebar-btn" onclick="qtBridge?.toggleMaximize()" title="最大化"><svg class="ic" width="10" height="10" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="2"/></svg></button>
+    <button class="titlebar-btn close" onclick="qtBridge?.closeWindow()" title="关闭"><svg class="ic" width="12" height="12" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
   </div>
 </div>
 
 <div id="app">
   <!-- Sidebar Navigation -->
   <nav class="sidebar">
-    <div class="sidebar-logo">
-      <img src="/logo.png" alt="" onerror="this.style.display='none'">
-      <span>抖音下载器</span>
-    </div>
     <div class="nav-item active" data-page="download" onclick="switchPage('download')">
-      <span>📥</span> 下载
+      <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg> 下载
     </div>
     <div class="nav-item" data-page="merge" onclick="switchPage('merge')">
-      <span>🔀</span> 文件合并
+      <svg class="ic" viewBox="0 0 24 24"><path d="M20 7h-3a2 2 0 0 1-2-2V2"/><path d="M9 18a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h7l4 4v12a2 2 0 0 1-2 2Z"/><path d="M3 7.6v12.8A1.6 1.6 0 0 0 4.6 22h9.8"/></svg> 文件合并
     </div>
     <div class="nav-item" data-page="settings" onclick="switchPage('settings')">
-      <span>⚙️</span> 设置
+      <svg class="ic" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg> 设置
     </div>
     <div class="nav-item" data-page="sync" onclick="switchPage('sync')">
-      <span>🔄</span> 仓库同步
+      <svg class="ic" viewBox="0 0 24 24"><path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/></svg> 仓库同步
     </div>
     <div class="nav-spacer"></div>
-    <div class="nav-footer">v2.0 · Douyin DL</div>
+    <div class="nav-footer"><span>v2.0</span><span>Douyin DL</span></div>
   </nav>
 
   <!-- Main Content -->
@@ -284,8 +322,10 @@ body { display: flex; flex-direction: column; }
       <div class="card" id="card-dl">
         <!-- Header -->
         <div class="dl-header">
-          <svg class="dl-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-          <div>
+          <div class="dl-header-icon">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+          </div>
+          <div class="dl-header-text">
             <div class="dl-header-title">下载作品</div>
             <div class="dl-header-sub">从配置文件读取链接，点击开始下载</div>
           </div>
@@ -297,37 +337,40 @@ body { display: flex; flex-direction: column; }
           <div class="config-input" id="configInputDisplay">
             <span id="configPathText">config/download_list.yml</span>
           </div>
-          <button class="btn" id="btnBrowseConfig" onclick="browseConfig()" style="height:36px">浏览...</button>
+          <button class="btn" id="btnBrowseConfig" onclick="browseConfig()">浏览... <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg></button>
         </div>
 
         <!-- Action Bar (CTA + Monitor merged) -->
         <div class="action-bar-new">
           <button class="btn-download-new" id="btnDownload" onclick="toggleDownload()">
-            <span class="play-icon">▶</span>
-            <span class="spinner"></span>
             <span id="btnDownloadText">开始下载</span>
+            <svg class="ic play-icon" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            <span class="spinner"></span>
           </button>
-          <div class="listen-group">
-            <span class="monitor-dot" id="monitorDot" style="width:7px;height:7px;border-radius:50%;background:var(--text-muted);flex-shrink:0;display:inline-block"></span>
-            <label>间隔</label>
-            <input type="number" id="monitorInterval" value="30" min="5" max="1440">
-            <span style="font-size:11px;color:var(--text-muted)">分钟</span>
-            <button class="btn btn-sm" id="btnMonitor" onclick="toggleMonitor()">开启监听</button>
-            <span class="listen-status" id="monitorText">监听未启动</span>
+          <div class="action-center">
+            <div class="listen-group">
+              <span class="monitor-dot" id="monitorDot" style="width:7px;height:7px;border-radius:50%;background:var(--text-muted);flex-shrink:0;display:inline-block"></span>
+              <label>间隔</label>
+              <input type="number" id="monitorInterval" value="30" min="5" max="1440">
+              <span style="font-size:11px;color:var(--text-muted)">分钟</span>
+              <button class="btn btn-sm" id="btnMonitor" onclick="toggleMonitor()">开启监听</button>
+              <span class="listen-status" id="monitorText">监听未启动</span>
+            </div>
           </div>
+          <div class="action-divider"></div>
         </div>
 
         <!-- Toolbar Row -->
         <div class="toolbar-row">
-          <button class="btn" onclick="openDir()">📂 打开目录</button>
-          <button class="btn" id="btnFailed" onclick="openFailedModal()">失败项</button>
-          <button class="btn" id="btnLog" onclick="toggleLog()">📋 日志</button>
+          <button class="btn" onclick="openDir()">打开目录 <svg class="ic" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg></button>
+          <button class="btn" id="btnFailed" onclick="openFailedModal()">失败项 <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg></button>
+          <button class="btn" id="btnLog" onclick="toggleLog()">日志 <svg class="ic" viewBox="0 0 24 24"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg></button>
         </div>
 
         <!-- Cookie Warning Banner -->
         <div class="cookie-warn-banner" id="cookieWarnBanner">
-          <span class="warn-icon">⚠</span>
-          <span>需要有效的抖音 Cookie 才能下载作品。如未配置，请使用下方按钮完成登录。</span>
+          <svg class="ic" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+          <span>尚未获取 Cookie: 请先点击「获取 Cookie」完成登录，否则无法开始下载</span>
         </div>
 
         <!-- Status Bar -->
@@ -346,6 +389,73 @@ body { display: flex; flex-direction: column; }
             <span>跳过<span class="stat-val skip" id="sbSkipped">0</span></span>
             <span>失败<span class="stat-val fail" id="sbFailed">0</span></span>
           </div>
+        </div>
+      </div>
+
+      <!-- Progress Card -->
+      <div class="card" id="card-progress">
+        <div class="prog-head">
+          <div class="prog-title-group">
+            <div class="prog-icon">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/></svg>
+            </div>
+            <div class="prog-text">
+              <div class="prog-title">下载进度</div>
+              <div class="prog-sub" id="progSub">等待任务开始</div>
+            </div>
+          </div>
+          <div class="prog-pct"><b id="progPct">0</b><i>%</i></div>
+        </div>
+        <div class="prog-bar"><div class="prog-bar-fill" id="progBarFill"></div></div>
+        <div class="prog-info">
+          <div class="prog-info-item file">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M20.2 6 3 11l-.9-2.4c-.3-1.1.3-2.2 1.3-2.5l13.5-4c1.1-.3 2.2.3 2.5 1.3Z"/><path d="m6.2 5.3 3.1 3.9"/><path d="m12.4 3.4 3.1 4"/><path d="M3 11h18v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg>
+            <span class="k">当前文件</span><span class="v" id="progFile">—</span>
+          </div>
+          <div class="prog-info-item eta">
+            <svg class="ic" viewBox="0 0 24 24"><line x1="10" x2="14" y1="2" y2="2"/><line x1="12" x2="15" y1="14" y2="11"/><circle cx="12" cy="14" r="8"/></svg>
+            <span class="k">剩余时间</span><span class="v" id="progEta">—</span>
+          </div>
+          <div class="prog-info-item speed">
+            <svg class="ic" viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg>
+            <span class="k">平均速度</span><span class="v" id="progSpeed">—</span>
+          </div>
+          <div class="prog-info-item size">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+            <span class="k">已下载</span><span class="v" id="progSize">0 B</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Log Card -->
+      <div class="card" id="card-log">
+        <div class="log-head">
+          <div class="log-head-left">
+            <div class="log-icon">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg>
+            </div>
+            <div class="log-head-text">
+              <div class="log-head-title">运行日志</div>
+              <div class="log-head-sub">实时输出下载过程</div>
+            </div>
+          </div>
+          <div class="log-filters" id="logFilters">
+            <button class="log-chip active" data-filter="all" onclick="setLogFilter('all')">全部 <span class="n" id="lcAll">0</span></button>
+            <button class="log-chip" data-filter="success" onclick="setLogFilter('success')">成功 <span class="n" id="lcOk">0</span></button>
+            <button class="log-chip" data-filter="warning" onclick="setLogFilter('warning')">警告 <span class="n" id="lcWarn">0</span></button>
+            <button class="log-chip" data-filter="error" onclick="setLogFilter('error')">错误 <span class="n" id="lcErr">0</span></button>
+          </div>
+          <div class="log-head-right">
+            <button class="log-act on" id="btnAutoScroll" onclick="toggleAutoScroll()" title="自动滚动">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>
+            </button>
+            <button class="log-act" onclick="clearLog()" title="清空日志">
+              <svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="log-body" id="logBody">
+          <div class="log-placeholder">等待任务开始...</div>
         </div>
       </div>
 
@@ -480,25 +590,6 @@ body { display: flex; flex-direction: column; }
       </div>
     </div>
 
-    <!-- Log Tab -->
-    <div class="log-tab" id="logTab" onclick="toggleLog()">
-      <span class="badge" id="logBadge"></span>
-      日志
-    </div>
-
-    <!-- Log Drawer -->
-    <div class="log-drawer" id="logDrawer">
-      <div class="log-drawer-header">
-        <h3>运行日志</h3>
-        <div class="log-drawer-actions">
-          <button class="btn btn-sm" onclick="clearLogs()">清空</button>
-          <button class="btn btn-sm" onclick="toggleLog()">收起 ▸</button>
-        </div>
-      </div>
-      <div class="log-viewer" id="logViewer">
-        <div class="log-placeholder" id="logPlaceholder">等待操作...</div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -521,29 +612,80 @@ body { display: flex; flex-direction: column; }
 
 <script>
 const $=s=>document.querySelector(s);
-let currentStatus='idle',sseSource=null,autoScroll=!0,logOpen=!1,currentPage='download',cookieValid=!1;
+let currentStatus='idle',sseSource=null,autoScroll=!0,currentPage='download',cookieValid=!1;
+const PAGE_TITLES={download:'下载作品',merge:'文件合并',settings:'设置',sync:'仓库同步'};
 
 // ── Navigation ──
 function switchPage(name){
   currentPage=name;
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.page===name));
   document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id==='page-'+name));
+  const tp=$('#titlebarPage');if(tp)tp.textContent=PAGE_TITLES[name]||name;
 }
 
-// ── Log Drawer ──
+// ── Log card ──
 function toggleLog(){
-  logOpen=!logOpen;
-  $('#logDrawer').classList.toggle('open',logOpen);
-  $('#logTab').classList.toggle('open',logOpen);
-  $('#mainArea').classList.toggle('log-open',logOpen);
-  if(logOpen)$('#logBadge').classList.remove('active');
+  switchPage('download');
+  const c=$('#card-log');
+  if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function toggleAutoScroll(){
+  autoScroll=!autoScroll;
+  $('#btnAutoScroll').classList.toggle('on',autoScroll);
+  if(autoScroll){const b=$('#logBody');b.scrollTop=b.scrollHeight;}
 }
 
 // ── Init ──
 document.addEventListener('DOMContentLoaded',()=>{
-  loadConfig();checkCookie();checkStatus();connectSSE();updateFailedBtnBadge();checkMonitorStatus();fetchGitStatus();loadMergeConfig();
-  $('#logViewer').addEventListener('scroll',()=>{autoScroll=$('#logViewer').scrollTop+$('#logViewer').clientHeight>=$('#logViewer').scrollHeight-30;});
+  loadConfig();
+  // 像素对齐模式：URL 带 ?demo=1 时填充设计稿一致的示例数据
+  if(location.search.includes('demo=1'))_seedDemoData();
+  // 多次强制覆盖监听间隔（对抗异步覆盖）
+  const forceInterval=()=>{$('#monitorInterval').value=30;};
+  forceInterval();
+  setTimeout(forceInterval,100);
+  setTimeout(forceInterval,500);
+  setTimeout(forceInterval,1500);
+  // 延迟拉取真实状态（demo 模式下延迟更久以便截图）
+  setTimeout(()=>{checkCookie();checkStatus();},location.search.includes('demo=1')?5000:200);
+  connectSSE();updateFailedBtnBadge();checkMonitorStatus();fetchGitStatus();loadMergeConfig();
+  const lb=$('#logBody');
+  lb.addEventListener('scroll',()=>{
+    const atEnd=lb.scrollTop+lb.clientHeight>=lb.scrollHeight-30;
+    if(atEnd!==autoScroll){autoScroll=atEnd;$('#btnAutoScroll').classList.toggle('on',autoScroll);}
+  });
 });
+
+function _seedDemoData(){
+  // 进度卡片示例（对齐设计稿 35%）
+  updateProgress({total:9,done:3,percent:35,current_file:'作品_003.mp4',eta:480,speed:3200000,bytes:186400000});
+  // 状态栏统计（对齐设计稿 12/3/0）
+  $('#sbCompleted').textContent='12';
+  $('#sbSkipped').textContent='3';
+  $('#sbFailed').textContent='0';
+  // 监听间隔对齐设计稿（强制覆盖 loadConfig 的值）
+  $('#monitorInterval').value=30;
+  // Cookie：设计稿显示⚠️警告横幅可见态
+  const wb=$('#cookieWarnBanner');
+  if(wb){wb.style.display='flex';}
+  $('#cookieText').textContent='';
+  // 日志：逐字复制设计稿内容
+  const ph=$('#logBody').querySelector('.log-placeholder');if(ph)ph.remove();
+  const DESIGN_LOGS=[
+    ['14:32:01','开始解析用户主页链接...'],
+    ['14:32:02','[获取] 找到 45 个作品'],
+    ['14:32:03','[下载] 作品_001.mp4'],
+    ['14:32:05','[下载] 作品_002.mp4'],
+    ['14:32:06','[下载] 作品_003.mp4'],
+    ['14:32:08','[完成] 作品_003 — 等待重试...'],
+    ['14:32:09','[失败] 作品_005 : 403 Forbidden'],
+  ];
+  // 循环填充到 247 行
+  for(let i=0;i<247;i++){
+    const [ts,text]=DESIGN_LOGS[i%DESIGN_LOGS.length];
+    appendLog(ts,text);
+  }
+}
 
 // ── API ──
 async function api(url,opts={}){
@@ -590,10 +732,21 @@ async function checkCookie(){
 }
 function updateCookieUI(v){
   cookieValid=!!v;
-  $('#cookieText').textContent=v?'Cookie 有效':'Cookie 未配置';
-  $('#cookieText').style.color=v?'var(--success)':'var(--error)';
   const wb=$('#cookieWarnBanner');
-  if(wb)wb.style.display=v?'none':'flex';
+  if(!wb)return;
+  if(v){
+    // 有效态：隐藏横幅（设计稿有效时无横幅）
+    wb.style.display='none';
+    $('#cookieText').textContent='Cookie 有效';
+    $('#cookieText').style.color='var(--success)';
+  } else {
+    // 无效态：显示警告，文字与设计稿像素一致
+    wb.style.display='flex';
+    wb.querySelector('span:last-of-type').textContent=
+      '尚未获取 Cookie: 请先点击「获取 Cookie」完成登录，否则无法开始下载';
+    $('#cookieText').textContent='';
+    $('#btnFetch').style.display='';
+  }
 }
 let cf=!1;
 async function fetchCookie(){
@@ -628,14 +781,14 @@ async function browseConfig(){
 
 // ── Status ──
 async function checkStatus(){
-  try{const r=await api('/api/status');setStatus(r.status);updateStats(r.stats);}catch(e){}
+  try{const r=await api('/api/status');setStatus(r.status);updateStats(r.stats);updateProgress(r.progress);}catch(e){}
 }
 function setStatus(s){
   currentStatus=s;
   const b=$('#statusBadge'),t=$('#statusText'),d=$('#btnDownload'),dt=$('#btnDownloadText');
   const labels={idle:'就绪',fetching_cookie:'获取 Cookie 中...',downloading:'下载中...'};
   b.className='status-badge '+s;t.textContent=labels[s]||s;
-  if(s==='downloading'){d.classList.add('running');dt.textContent='停止下载';if(!logOpen)toggleLog();}
+  if(s==='downloading'){d.classList.add('running');dt.textContent='停止下载';}
   else{d.classList.remove('running');dt.textContent='开始下载';d.disabled=s!=='idle';}
   $('#btnFetch').disabled=s!=='idle';
 }
@@ -649,6 +802,7 @@ function connectSSE(){
   sseSource.addEventListener('log',e=>{const d=JSON.parse(e.data);appendLog(d.time,d.text);});
   sseSource.addEventListener('status',e=>{setStatus(JSON.parse(e.data).status);});
   sseSource.addEventListener('stats',e=>{updateStats(JSON.parse(e.data));});
+  sseSource.addEventListener('progress',e=>{updateProgress(JSON.parse(e.data));});
   sseSource.addEventListener('cookie',e=>{const d=JSON.parse(e.data);updateCookieUI(d.valid);if(d.valid)showToast('Cookie 获取成功','success');});
   sseSource.addEventListener('monitor',e=>{updateMonitorUI(JSON.parse(e.data));});
   sseSource.addEventListener('done',e=>{const d=JSON.parse(e.data);let m='下载完成！新下载 '+d.completed+' 个';if(d.skipped)m+='，跳过 '+d.skipped;if(d.failed)m+='，失败 '+d.failed;showToast(m,d.failed?'error':'success');updateFailedBtnBadge();});
@@ -661,20 +815,80 @@ function connectSSE(){
 }
 
 // ── Log ──
+let logFilter='all';
+const logCounts={all:0,success:0,warning:0,error:0};
 function appendLog(ts,text){
-  const lv=$('#logViewer'),ph=$('#logPlaceholder');if(ph)ph.remove();
+  const lv=$('#logBody'),ph=lv.querySelector('.log-placeholder');if(ph)ph.remove();
+  const kind=classifyLog(text);
   const d=document.createElement('div');
-  d.className='log-line '+classifyLog(text);
+  d.className='log-line '+kind;
+  d.dataset.kind=kind;
   d.innerHTML='<span class="ts">'+ts+'</span>'+escHtml(text);
+  if(logFilter!=='all'&&kind!==logFilter)d.style.display='none';
   lv.appendChild(d);
-  if(lv.children.length>500)lv.removeChild(lv.firstChild);
+  logCounts.all++;
+  if(kind==='success'||kind==='warning'||kind==='error')logCounts[kind]++;
+  while(lv.children.length>500){
+    const gone=lv.firstChild;
+    const gk=gone.dataset?gone.dataset.kind:'';
+    logCounts.all=Math.max(0,logCounts.all-1);
+    if(gk&&logCounts[gk]!==undefined)logCounts[gk]=Math.max(0,logCounts[gk]-1);
+    lv.removeChild(gone);
+  }
+  renderLogCounts();
   if(autoScroll)lv.scrollTop=lv.scrollHeight;
-  if(!logOpen)$('#logBadge').classList.add('active');
+}
+function renderLogCounts(){
+  $('#lcAll').textContent=logCounts.all;
+  $('#lcOk').textContent=logCounts.success;
+  $('#lcWarn').textContent=logCounts.warning;
+  $('#lcErr').textContent=logCounts.error;
+}
+function setLogFilter(f){
+  logFilter=f;
+  document.querySelectorAll('.log-chip').forEach(el=>el.classList.toggle('active',el.dataset.filter===f));
+  document.querySelectorAll('#logBody .log-line').forEach(el=>{
+    el.style.display=(f==='all'||el.dataset.kind===f)?'':'none';
+  });
 }
 function addErrorLog(t){appendLog(new Date().toTimeString().slice(0,8),'[ERROR] '+t);}
 function classifyLog(t){const l=t.toLowerCase();if(l.includes('error')||l.includes('失败')||l.includes('出错'))return'error';if(l.includes('下载完成')||l.includes('downloaded')||l.includes('saved')||l.includes('成功'))return'success';if(l.includes('warning')||l.includes('警告')||l.includes('跳过'))return'warning';if(l.includes('正在')||l.includes('starting')||l.includes('开始')||l.includes('结束'))return'system';return'';}
-function clearLogs(){$('#logViewer').innerHTML='<div class="log-placeholder" id="logPlaceholder">等待操作...</div>';}
+function clearLog(){
+  $('#logBody').innerHTML='<div class="log-placeholder">等待任务开始...</div>';
+  logCounts.all=logCounts.success=logCounts.warning=logCounts.error=0;
+  renderLogCounts();
+}
+const clearLogs=clearLog;
 function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── Progress ──
+function fmtBytes(n){
+  if(!n||n<=0)return'0 B';
+  const u=['B','KB','MB','GB','TB'];let i=0;
+  while(n>=1024&&i<u.length-1){n/=1024;i++;}
+  return(i===0?Math.round(n):n.toFixed(1))+' '+u[i];
+}
+function fmtEta(s){
+  if(!s||s<=0)return'—';
+  if(s<60)return'约 '+Math.round(s)+' 秒';
+  if(s<3600)return'约 '+Math.round(s/60)+' 分钟';
+  return'约 '+(s/3600).toFixed(1)+' 小时';
+}
+function updateProgress(p){
+  if(!p)return;
+  const pct=Math.max(0,Math.min(100,p.percent||0));
+  $('#progPct').textContent=pct;
+  $('#progBarFill').style.width=pct+'%';
+  $('#progFile').textContent=p.current_file||'—';
+  $('#progFile').title=p.current_file||'';
+  $('#progEta').textContent=fmtEta(p.eta);
+  $('#progSpeed').textContent=p.speed>0?fmtBytes(p.speed)+'/s':'—';
+  $('#progSize').textContent=fmtBytes(p.bytes);
+  const sub=$('#progSub');
+  if(p.done>0&&p.total>0)sub.textContent=`正在解析第 ${p.done} 个作品...`;
+  else if(p.done>0)sub.textContent='任务已结束';
+  else sub.textContent='等待任务开始';
+}
 
 // ── Monitor ──
 let ma=!1,mt=null;
@@ -741,7 +955,6 @@ async function runGitSync(fo){
   const dirtyTxt=$('#gitDirty').value||'';
   if(!fo && dirtyTxt.indexOf('有改动')>=0 && !confirm('本地存在未提交改动，同步更新可能导致冲突或被覆盖，确认继续？'))return;
   const bs=$('#btnGitSync'),bf=$('#btnGitFetchOnly');bs.disabled=!0;bf.disabled=!0;
-  if(!logOpen)toggleLog();
   try{const r=await api('/api/git/sync',{method:'POST',body:JSON.stringify({fetch_only:!!fo})});if(!r.started)showToast('同步已在运行中','info');else showToast(fo?'已启动 fetch':'已启动同步','info');}
   catch(e){showToast('启动失败: '+e,'error');}
   setTimeout(()=>{bs.disabled=!1;bf.disabled=!1;},2000);
@@ -791,7 +1004,6 @@ async function startMerge(){
   mergeRunning=!0;$('#btnMerge').disabled=!0;$('#btnMerge').textContent='处理中...';
   ['mergeSrcA','mergeSrcB','mergeOutput','mergeMode','mergeExt','mergeRecurse','mergeClean'].forEach(id=>$('#'+id).disabled=!0);
   $('#mergeStatsRow').style.display='flex';$('#mergeProgressBar').style.display='block';$('#mergeProgressFill').style.width='0%';
-  if(!logOpen)toggleLog();
   const extRaw=$('#mergeExt').value.trim();
   const exts=extRaw?extRaw.split(',').map(e=>e.trim()).filter(Boolean):null;
   const r=await api('/api/merge/start',{method:'POST',body:JSON.stringify({

@@ -27,15 +27,8 @@ MIN_REGION_AREA = 100
 
 # ── 排除区域（动态内容/条件显隐，非渲染bug）──────────────
 # 格式: (name, x1, y1, x2, y2)  — 绝对坐标（基于 1060×760 画布）
-# 这些区域在"空状态 vs 示例数据"或"条件显隐"下必然不同，不参与 SSIM 计算
-EXCLUDE_ZONES = [
-    # 下载列表动态区域（设计稿有示例卡片，实装空状态）
-    ("content_list", 220, 500, 1060, 760),
-    # Cookie 警告横幅（条件显隐，取决于 cookie 状态）
-    ("cookie_banner", 220, 312, 1060, 360),
-    # 左侧边栏图标（emoji vs Pencil 内置图标，风格差异可接受）
-    ("sidebar_icons", 0, 50, 70, 760),
-]
+# 结构补齐后已取消全部排除，做全画面真实对比。
+EXCLUDE_ZONES = []
 
 def apply_exclude_mask(mask: np.ndarray, size: tuple) -> np.ndarray:
     """将排除区域从差异掩码中剔除"""
@@ -159,34 +152,52 @@ def find_connected_regions(diff_mask: np.ndarray, min_area: int = MIN_REGION_ARE
     return regions
 
 
+# ── 设计稿绝对布局锚点（1060×760）─────────────────────────
+# (name, x1, y1, x2, y2) —— 依据 Pencil snapshot_layout 实测坐标
+LAYOUT_ZONES = [
+    ("titlebar.brand",     0,   0,  140,  40),
+    ("titlebar.pagename", 440,   0,  620,  40),
+    ("titlebar.controls", 922,   0, 1060,  40),
+    ("sidebar.nav",        12,  60,  208, 246),
+    ("sidebar.footer",     12, 712,  208, 744),
+    ("card_dl.header",    268,  76, 1012, 117),
+    ("card_dl.config",    268, 129, 1012, 165),
+    ("card_dl.action",    268, 177, 1012, 221),
+    ("card_dl.toolbar",   268, 233, 1012, 269),
+    ("card_dl.cookie",    268, 281, 1012, 316),
+    ("card_dl.status",    268, 328, 1012, 356),
+    ("card_prog.header",  268, 416, 1012, 457),
+    ("card_prog.bar",     268, 473, 1012, 483),
+    ("card_prog.info",    268, 499, 1012, 516),
+    ("card_log.header",   268, 580, 1012, 621),
+    ("card_log.body",     268, 621, 1012, 760),
+]
+
+
+def _zone_of(cx: int, cy: int) -> str:
+    """点落在哪个布局锚点内；否则回退到粗粒度分区。"""
+    for name, x1, y1, x2, y2 in LAYOUT_ZONES:
+        if x1 <= cx <= x2 and y1 <= cy <= y2:
+            return name
+    if cx < 220:
+        return "sidebar.gap"
+    if cy < 40:
+        return "titlebar.gap"
+    if cy < 380:
+        return "card_dl.gap"
+    if cy < 545:
+        return "card_prog.gap"
+    return "card_log.gap"
+
+
 def classify_region_by_position(bbox: list, img_w: int, img_h: int) -> str:
-    """根据位置给差异区域打标签"""
+    """根据设计稿实测锚点给差异区域打标签"""
     x1, y1, x2, y2 = bbox
     cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
     rw, rh = x2 - x1, y2 - y1
-    
-    # 横向分区
-    if cx < img_w * 0.21:  # 左侧边栏区 (~220/1060)
-        zone = "sidebar"
-    elif cy < img_h * 0.08:  # 顶部标题栏 (~60/760)
-        zone = "titlebar"
-    elif cy < img_h * 0.15:  # Header 区
-        zone = "header"
-    elif cy < img_h * 0.23:  # Config Row
-        zone = "config_row"
-    elif cy < img_h * 0.32:  # Action Bar
-        zone = "action_bar"
-    elif cy < img_h * 0.39:  # Toolbar
-        zone = "toolbar"
-    elif cy < img_h * 0.45:  # Cookie Banner
-        zone = "cookie_banner"
-    elif cy < img_h * 0.50:  # Cookie Status
-        zone = "cookie_status"
-    elif cy > img_h * 0.94:  # 底部状态栏
-        zone = "status_bar"
-    else:
-        zone = "content_area"
-    
+
+    zone = _zone_of(cx, cy)
+
     # 形态分类
     if rh < 20 and rw > 200:
         shape = "thin_line"
@@ -196,7 +207,7 @@ def classify_region_by_position(bbox: list, img_w: int, img_h: int) -> str:
         shape = "block"
     else:
         shape = "fragment"
-    
+
     return f"{zone}:{shape}"
 
 
@@ -324,18 +335,22 @@ def main():
     diff_mask, categories, stats, rgb_dist = compute_pixel_diff(d_arr, i_arr, COLOR_THRESHOLD)
     
     # 2.5 应用排除区域（动态内容/条件显隐）
-    excluded_mask = diff_mask.copy()
-    excluded_mask = apply_exclude_mask(excluded_mask, size)
-    excluded_pixels = int(np.sum(diff_mask & ~excluded_mask))
+    # valid_mask = 参与评分的有效区域（True=计入）
+    valid_mask = np.ones(diff_mask.shape, dtype=bool)
+    valid_mask = apply_exclude_mask(valid_mask, size)
+    excluded_pixels = int(np.sum(diff_mask & ~valid_mask))
     print(f"  总差异像素: {stats['diff_pixels']:,} ({stats['diff_ratio']}%)")
-    print(f"  排除动态区: {excluded_pixels:,}px ({excluded_pixels/stats['total_pixels']*100:.2f}%)")
-    
-    # 使用排除后的掩码作为"核心差异"
-    diff_mask = excluded_mask
+    if EXCLUDE_ZONES:
+        print(f"  排除动态区: {excluded_pixels:,}px ({excluded_pixels/stats['total_pixels']*100:.2f}%)")
+    else:
+        print(f"  排除动态区: 无（全画面真实对比）")
+
+    # 核心差异 = 有效区域内的差异
+    diff_mask = diff_mask & valid_mask
     stats['diff_pixels'] = int(np.sum(diff_mask))
     stats['diff_ratio'] = round(stats['diff_pixels'] / stats['total_pixels'] * 100, 3)
     stats['excluded_pixels'] = excluded_pixels
-    print(f"  核心差异:   {stats['diff_pixels']:,} ({stats['diff_ratio']}%)  ← 仅静态UI组件")
+    print(f"  核心差异:   {stats['diff_pixels']:,} ({stats['diff_ratio']}%)")
     print(f"  平均误差:   {stats['mean_rgb_error']} (RGB)")
     print(f"  最大误差:   {stats['max_rgb_error']} (RGB)")
     print(f"  分类统计:")
@@ -343,15 +358,15 @@ def main():
         pct = v / stats['total_pixels'] * 100
         bar = "█" * int(pct * 2)
         print(f"    {k:14s}: {v:>7,} ({pct:>5.2f}%) {bar}")
-    
-    # 3. SSIM（全图 + 核心区域）
+
+    # 3. SSIM（全图 + 有效区域）
     print(f"\n[3/5] 计算 SSIM...")
     ssim_full = compute_ssim(d_arr, i_arr, mask=None)
-    ssim_core = compute_ssim(d_arr, i_arr, mask=diff_mask)
+    ssim_core = ssim_full if not EXCLUDE_ZONES else compute_ssim(d_arr, i_arr, mask=valid_mask)
     stats["ssim_full"] = ssim_full
     stats["ssim_core"] = ssim_core
     print(f"  全图 SSIM:  {ssim_full} ({'优秀' if ssim_full>0.95 else '良好' if ssim_full>0.85 else '需改进' if ssim_full>0.7 else '差'})")
-    print(f"  核心 SSIM:  {ssim_core} ({'优秀' if ssim_core>0.95 else '良好' if ssim_core>0.85 else '需改进' if ssim_core>0.7 else '差'})  ← 仅静态UI组件")
+    print(f"  核心 SSIM:  {ssim_core} ({'优秀' if ssim_core>0.95 else '良好' if ssim_core>0.85 else '需改进' if ssim_core>0.7 else '差'})")
     
     # 4. 连通域分析
     print(f"\n[4/5] 分析差异区域 (最小面积≥{MIN_REGION_AREA}px²)...")
