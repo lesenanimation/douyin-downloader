@@ -47,7 +47,8 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
 .nav-item .dot.green { background: var(--success); box-shadow: 0 0 6px var(--success); }
 .nav-item .dot.red { background: var(--error); box-shadow: 0 0 6px var(--error); }
 .nav-spacer { flex: 1; }
-.nav-footer { padding: 12px 12px 4px; font-size: 11px; color: var(--text-muted); flex-shrink: 0; text-align: center; }
+.nav-footer { display: flex; align-items: center; gap: 8px; padding: 12px 12px 4px; font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.nav-dot { width: 6px; height: 6px; border-radius: 50%; background: #00E676; flex-shrink: 0; }
 
 /* ── Main Content Area ── */
 .main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
@@ -103,6 +104,19 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
 .checkbox-group { display: flex; gap: 16px; flex-wrap: wrap; padding-top: 2px; }
 .checkbox-group label { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; cursor: pointer; }
 .checkbox-group input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; }
+
+/* ── Settings redesigned (matches design spec) ── */
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+.settings-grid .field.full { grid-column: 1 / -1; }
+.seg { display: flex; gap: 2px; border: 1px solid var(--input-border); border-radius: 6px; padding: 2px; }
+.seg-item { flex: 1; padding: 7px 6px; border: none; background: transparent; color: var(--text-muted); font-size: 12px; font-weight: 500; border-radius: 5px; cursor: pointer; font-family: inherit; transition: all .15s; }
+.seg-item:hover { color: var(--text-secondary); }
+.seg-item.active { background: var(--accent); color: #fff; }
+.val-box { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 12px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; }
+.val-box:focus-within { border-color: var(--accent); }
+.val-hash { color: var(--text-muted); font-size: 13px; font-family: 'Cascadia Code','Consolas',monospace; }
+.val-ic { width: 14px; height: 14px; color: var(--text-muted); flex-shrink: 0; }
+.val-input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; color: var(--text); font-size: 13px; padding: 0; font-family: 'Cascadia Code','Consolas',monospace; }
 
 /* ── Action Bar ── */
 .action-bar { display: flex; gap: 10px; align-items: center; }
@@ -311,7 +325,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
       <svg class="ic" viewBox="0 0 24 24"><path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/></svg> 仓库同步
     </div>
     <div class="nav-spacer"></div>
-    <div class="nav-footer">v2.0 · Douyin DL</div>
+    <div class="nav-footer"><span>v2.0 · Douyin DL</span><span class="nav-dot"></span></div>
   </nav>
 
   <!-- Main Content -->
@@ -540,32 +554,22 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
     <div class="page" id="page-settings">
       <div class="card">
         <div class="card-header"><h3>下载设置</h3><button class="btn btn-primary btn-sm" onclick="saveSettings()">保存</button></div>
-        <div class="form-grid">
+        <div class="settings-grid">
           <div class="field full">
-            <label>下载路径</label>
-            <div class="input-row">
-              <input type="text" id="cfgPath" placeholder="选择下载目录...">
-              <button class="btn btn-sm" onclick="browsePath()">浏览</button>
+            <label>默认模式</label>
+            <div class="seg" id="cfgModeSeg">
+              <button type="button" class="seg-item active" data-val="home" onclick="segSelect(this)">主页</button>
+              <button type="button" class="seg-item" data-val="post" onclick="segSelect(this)">作品</button>
+              <button type="button" class="seg-item" data-val="mix" onclick="segSelect(this)">合集</button>
             </div>
           </div>
           <div class="field">
-            <label>默认模式</label>
-            <select id="cfgMode">
-              <option value="like">喜欢的视频</option>
-              <option value="post">作品视频</option>
-              <option value="collect" selected>收藏夹视频</option>
-              <option value="collectmix">收藏合集</option>
-              <option value="mix">合集</option>
-              <option value="music">音乐</option>
-            </select>
-          </div>
-          <div class="field">
             <label>并发数</label>
-            <input type="number" id="cfgThread" value="2" min="1" max="10">
+            <div class="val-box"><span class="val-hash">#</span><input type="number" id="cfgThread" class="val-input" value="5" min="1" max="10"></div>
           </div>
           <div class="field">
             <label>请求间隔 (秒)</label>
-            <input type="number" id="cfgRate" value="1.5" min="0.2" max="10" step="0.1">
+            <div class="val-box"><svg class="val-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="2" x2="14" y2="2"/><line x1="12" y1="14" x2="15" y2="11"/><circle cx="12" cy="14" r="8"/></svg><input type="number" id="cfgRate" class="val-input" value="1.5" min="0.2" max="10" step="0.1"></div>
           </div>
           <div class="field full">
             <div class="checkbox-group">
@@ -709,15 +713,29 @@ async function loadConfig(){
     if(c.path){$('#cfgPath').value=c.path;$('#downloadPathText').textContent=c.path;}
     if(c.thread)$('#cfgThread').value=c.thread;
     if(c.rate_limit)$('#cfgRate').value=c.rate_limit;
-    if(c.mode&&c.mode.length)$('#cfgMode').value=c.mode[0];
+    // 默认模式: 映射到分段控件 (设计稿: 主页/作品/合集)
+    let mode='home';
+    if(Array.isArray(c.mode)&&c.mode.length)mode=c.mode[0];
+    else if(typeof c.mode==='string'&&c.mode)mode=c.mode;
+    let seg='home';
+    if(mode==='post')seg='post';
+    else if(mode==='mix'||mode==='mix2'||mode==='collectmix')seg='mix';
+    else seg='home';
+    document.querySelectorAll('#cfgModeSeg .seg-item').forEach(b=>b.classList.toggle('active',b.dataset.val===seg));
     $('#cbCover').checked=c.cover!==!1;$('#cbJson').checked=c.json!==!1;
     $('#cbFolder').checked=c.folderstyle!==!1;$('#cbMusic').checked=!!c.music;
     if(c.monitor&&c.monitor.interval)$('#monitorInterval').value=c.monitor.interval;
   }catch(e){}
 }
 
+function segSelect(el){
+  document.querySelectorAll('#cfgModeSeg .seg-item').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+}
+
 async function saveSettings(){
-  const m=$('#cfgMode').value;
+  const active=document.querySelector('#cfgModeSeg .seg-item.active');
+  const m=active?active.dataset.val:'home';
   const d={path:$('#cfgPath').value,thread:parseInt($('#cfgThread').value)||2,
     rate_limit:parseFloat($('#cfgRate').value)||.5,mode:[m],
     cover:$('#cbCover').checked,json:$('#cbJson').checked,
