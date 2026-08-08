@@ -1,0 +1,238 @@
+{
+  "version": "2.14",
+  "children": [
+    {
+      "type": "frame",
+      "id": "app",
+      "name": "Douyin Downloader",
+      "x": 0,
+      "y": 0,
+      "width": 1200,
+      "height": 800,
+      "fill": "#0F1117",
+      "clip": true,
+      "layout": "horizontal",
+      "children": [
+        {
+          "type": "frame",
+          "id": "sidebar",
+          "name": "Sidebar",
+          "width": 220,
+          "height": 800,
+          "fill": "#1A1D27",
+          "layout": "vertical",
+          "gap": 4,
+          "padding": { "top": 24, "right": 16, "bottom": 24, "left": 16 },
+          "children": [
+            {
+              "type": "text",
+              "id": "logo",
+              "content": "抖音下载器",
+              "fontSize": 16,
+              "fontWeight": 700,
+              "fill": "#E4E4E7"
+            },
+            { "type": "text", "id": "nav-label", "content": "导航", "fontSize": 10, "fontWeight": 600, "fill": "#52525B" },
+            {
+              "type": "frame", "id": "nav-dl", "name": "下载",
+              "fill": "#6366F1", "cornerRadius": 8,
+              "padding": { "top": 10, "right": 12, "bottom": 10, "left": 12 },
+              "layout": "horizontal", "gap": 8,
+              "children": [
+                { "type": "text", "id": "nav-dl-text", "content": "下载", "fontSize": 13, "fontWeight": 600, "fill": "#FFFFFF" }
+              ]
+            },
+            {
+              "type": "frame", "id": "nav-mg", "name": "文件合并",
+              "cornerRadius": 8,
+              "padding": { "top": 10, "right": 12, "bottom": 10, "left": 12 },
+              "layout": "horizontal", "gap": 8,
+              "children": [
+                { "type": "text", "id": "nav-mg-text", "content": "文件合并", "fontSize": 13, "fill": "#71717A" }
+              ]
+            },
+            {
+              "type": "frame", "id": "nav-st", "name": "设置",
+              "cornerRadius": 8,
+              "padding": { "top": 10, "right": 12, "bottom": 10, "left": 12 },
+              "layout": "horizontal", "gap": 8,
+              "children": [
+                { "type": "text", "id": "nav-st-text", "content": "设置", "fontSize": 13, "fill": "#71717A" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "main",
+          "name": "Main",
+          "width": 980,
+          "height": 800,
+          "layout": "vertical",
+          "gap": 20,
+          "padding": { "top": 32, "right": 36, "bottom": 32, "left": 36 },
+          "children": [
+            {
+              "type": "text",
+              "id": "page-title",
+              "content": "下载",
+              "fontSize": 24,
+              "fontWeight": 700,
+              "fill": "#E4E4E7"
+            },
+            {
+              "type": "frame",
+              "id": "card",
+              "name": "Download Card",
+              "fill": "#1A1D27",
+              "cornerRadius": 12,
+              "stroke": "#2D3143",
+              "strokeWidth": 1,
+              "padding": { "top": 24, "right": 24, "bottom": 24, "left": 24 },
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "card-title",
+                  "content": "新建下载任务",
+                  "fontSize": 16,
+                  "fontWeight": 600,
+                  "fill": "#E4E4E7"
+                },
+                {
+                  "type": "frame",
+                  "id": "url-row",
+                  "layout": "horizontal",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "url-input",
+                      "fill": "#252836",
+                      "cornerRadius": 8,
+                      "stroke": "#2D3143",
+                      "strokeWidth": 1,
+                      "width": 500,
+                      "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "url-placeholder",
+                          "content": "粘贴抖音链接...",
+                          "fontSize": 14,
+                          "fill": "#52525B"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "btn-start",
+                      "fill": "#6366F1",
+                      "cornerRadius": 8,
+                      "padding": { "top": 12, "right": 28, "bottom": 12, "left": 28 },
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "btn-start-text",
+                          "content": "开始下载",
+                          "fontSize": 14,
+                          "fontWeight": 600,
+                          "fill": "#FFFFFF"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "options-row",
+                  "layout": "horizontal",
+                  "gap": 20,
+                  "children": [
+                    {
+                      "type": "frame", "id": "opt-mode", "layout": "vertical", "gap": 6,
+                      "children": [
+                        { "type": "text", "id": "lbl-mode", "content": "下载模式", "fontSize": 11, "fontWeight": 600, "fill": "#71717A" },
+                        {
+                          "type": "frame", "id": "sel-mode",
+                          "fill": "#252836", "cornerRadius": 6, "stroke": "#2D3143", "strokeWidth": 1,
+                          "width": 140, "padding": { "top": 8, "right": 12, "bottom": 8, "left": 12 },
+                          "children": [
+                            { "type": "text", "id": "sel-mode-text", "content": "用户主页", "fontSize": 13, "fill": "#E4E4E7" }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "opt-path", "layout": "vertical", "gap": 6,
+                      "children": [
+                        { "type": "text", "id": "lbl-path", "content": "下载目录", "fontSize": 11, "fontWeight": 600, "fill": "#71717A" },
+                        {
+                          "type": "frame", "id": "input-path",
+                          "fill": "#252836", "cornerRadius": 6, "stroke": "#2D3143", "strokeWidth": 1,
+                          "width": 220, "padding": { "top": 8, "right": 12, "bottom": 8, "left": 12 },
+                          "children": [
+                            { "type": "text", "id": "input-path-text", "content": "X:\\抖音收藏下载", "fontSize": 12, "fill": "#E4E4E7" }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "opt-conc", "layout": "vertical", "gap": 6,
+                      "children": [
+                        { "type": "text", "id": "lbl-conc", "content": "并发", "fontSize": 11, "fontWeight": 600, "fill": "#71717A" },
+                        {
+                          "type": "frame", "id": "input-conc",
+                          "fill": "#252836", "cornerRadius": 6, "stroke": "#2D3143", "strokeWidth": 1,
+                          "width": 56, "padding": { "top": 8, "right": 12, "bottom": 8, "left": 12 },
+                          "children": [
+                            { "type": "text", "id": "input-conc-text", "content": "5", "fontSize": 13, "fill": "#E4E4E7" }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "card-progress",
+              "name": "Progress",
+              "fill": "#1A1D27",
+              "cornerRadius": 12,
+              "stroke": "#2D3143",
+              "strokeWidth": 1,
+              "padding": { "top": 20, "right": 24, "bottom": 20, "left": 24 },
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                { "type": "text", "id": "prog-title", "content": "下载进度", "fontSize": 14, "fontWeight": 600, "fill": "#E4E4E7" },
+                {
+                  "type": "frame",
+                  "id": "progress-bar-bg",
+                  "width": 860,
+                  "height": 6,
+                  "fill": "#252836",
+                  "cornerRadius": 3,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "progress-bar-fill",
+                      "width": 300,
+                      "height": 6,
+                      "fill": "#6366F1",
+                      "cornerRadius": 3
+                    }
+                  ]
+                },
+                { "type": "text", "id": "prog-info", "content": "已下载 12/45  ·  35%  ·  速度 3.2 MB/s", "fontSize": 12, "fill": "#71717A" }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

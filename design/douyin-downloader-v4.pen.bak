@@ -1,0 +1,881 @@
+{
+  "version": "2.14",
+  "children": [
+    {
+      "type": "frame",
+      "id": "page-download",
+      "name": "Download Page",
+      "x": 0, "y": 0,
+      "width": 1060, "height": 720,
+      "fill": "#0D0D1A",
+      "clip": true,
+      "layout": "horizontal",
+      "children": [
+        {
+          "type": "frame", "id": "sidebar-dl",
+          "name": "Sidebar",
+          "width": 220, "height": 720,
+          "fill": "#141428",
+          "layout": "vertical", "gap": 2,
+          "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+          "children": [
+            {
+              "type": "frame", "id": "dl-logo",
+              "layout": "horizontal", "gap": 10,
+              "padding": { "top": 24, "right": 20, "bottom": 16, "left": 20 },
+              "children": [
+                { "type": "rectangle", "id": "dl-logo-icon", "width": 24, "height": 24, "fill": "#FE2C55", "cornerRadius": 6 },
+                { "type": "text", "id": "dl-logo-text", "content": "抖音下载器", "fontSize": 15, "fontWeight": 700, "fill": "#E4E4F0" }
+              ]
+            },
+            {
+              "type": "frame", "id": "dl-nav-dl", "layout": "horizontal", "gap": 0,
+              "padding": { "top": 8, "right": 20, "bottom": 8, "left": 0 },
+              "children": [
+                { "type": "rectangle", "id": "dl-nav-dl-ind", "width": 3, "height": 20, "fill": "#FE2C55", "cornerRadius": 2 },
+                { "type": "frame", "id": "dl-nav-dl-inner", "layout": "horizontal",
+                  "padding": { "top": 0, "right": 0, "bottom": 0, "left": 17 },
+                  "children": [
+                    { "type": "text", "id": "dl-nav-dl-text", "content": "下载", "fontSize": 13, "fontWeight": 600, "fill": "#E4E4F0" }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame", "id": "dl-nav-mg", "layout": "horizontal",
+              "padding": { "top": 8, "right": 20, "bottom": 8, "left": 20 },
+              "children": [
+                { "type": "text", "id": "dl-nav-mg-text", "content": "文件合并", "fontSize": 13, "fill": "#8888AA" }
+              ]
+            },
+            {
+              "type": "frame", "id": "dl-nav-st", "layout": "horizontal",
+              "padding": { "top": 8, "right": 20, "bottom": 8, "left": 20 },
+              "children": [
+                { "type": "text", "id": "dl-nav-st-text", "content": "设置", "fontSize": 13, "fill": "#8888AA" }
+              ]
+            },
+            {
+              "type": "frame", "id": "dl-nav-sy", "layout": "horizontal",
+              "padding": { "top": 8, "right": 20, "bottom": 8, "left": 20 },
+              "children": [
+                { "type": "text", "id": "dl-nav-sy-text", "content": "仓库同步", "fontSize": 13, "fill": "#8888AA" }
+              ]
+            },
+            {
+              "type": "frame", "id": "dl-spacer", "width": 220, "flex": 1 },
+            {
+              "type": "frame", "id": "dl-footer", "layout": "horizontal",
+              "padding": { "top": 20, "right": 20, "bottom": 20, "left": 20 },
+              "children": [
+                { "type": "text", "id": "dl-footer-text", "content": "v2.0 · Douyin DL", "fontSize": 12, "fill": "#555580" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame", "id": "content-dl",
+          "name": "Main Content",
+          "width": 840, "height": 720,
+          "layout": "vertical", "gap": 16,
+          "padding": { "top": 24, "right": 28, "bottom": 24, "left": 28 },
+          "overflow": "scroll",
+          "children": [
+            {
+              "type": "frame", "id": "card-status",
+              "name": "Status Bar",
+              "layout": "horizontal", "gap": 0,
+              "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+              "fill": "#141428", "cornerRadius": 12,
+              "stroke": "#232350", "strokeWidth": 1,
+              "children": [
+                {
+                  "type": "frame", "id": "status-left",
+                  "layout": "horizontal", "gap": 10,
+                  "children": [
+                    { "type": "ellipse", "id": "status-dot", "width": 8, "height": 8, "fill": "#00E676" },
+                    { "type": "text", "id": "status-label", "content": "就绪", "fontSize": 12, "fill": "#8888AA" },
+                    { "type": "rectangle", "id": "status-div", "width": 1, "height": 16, "fill": "#232350" },
+                    { "type": "text", "id": "status-cookie", "content": "Cookie 有效", "fontSize": 12, "fill": "#00E676" }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame", "id": "card-dl",
+              "name": "Download Card",
+              "layout": "vertical", "gap": 16,
+              "padding": { "top": 24, "right": 24, "bottom": 24, "left": 24 },
+              "fill": "#141428", "cornerRadius": 12,
+              "stroke": "#232350", "strokeWidth": 1,
+              "children": [
+                { "type": "text", "id": "dl-title", "content": "下载", "fontSize": 14, "fontWeight": 600, "fill": "#E4E4F0" },
+                {
+                  "type": "frame", "id": "dl-form-row-1",
+                  "layout": "horizontal", "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame", "id": "dl-field-url",
+                      "layout": "vertical", "gap": 6, "width": 440,
+                      "children": [
+                        { "type": "text", "id": "dl-lbl-url", "content": "链接地址", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                        {
+                          "type": "frame", "id": "dl-input-url",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "dl-url-ph", "content": "粘贴抖音链接...", "fontSize": 13, "fill": "#555580" }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "dl-field-mode",
+                      "layout": "vertical", "gap": 6, "width": 160,
+                      "children": [
+                        { "type": "text", "id": "dl-lbl-mode", "content": "下载模式", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                        {
+                          "type": "frame", "id": "dl-sel-mode",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "dl-sel-mode-text", "content": "用户主页", "fontSize": 13, "fill": "#E4E4F0" }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "dl-field-concurrency",
+                      "layout": "vertical", "gap": 6, "width": 80,
+                      "children": [
+                        { "type": "text", "id": "dl-lbl-conc", "content": "并发", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                        {
+                          "type": "frame", "id": "dl-input-conc",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "dl-input-conc-text", "content": "5", "fontSize": 13, "fill": "#E4E4F0" }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame", "id": "dl-form-row-2",
+                  "layout": "horizontal", "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame", "id": "dl-field-path",
+                      "layout": "vertical", "gap": 6, "width": 440,
+                      "children": [
+                        { "type": "text", "id": "dl-lbl-path", "content": "下载目录", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                        {
+                          "type": "frame", "id": "dl-path-row",
+                          "layout": "horizontal", "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame", "id": "dl-input-path",
+                              "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                              "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 }, "width": 372,
+                              "children": [
+                                { "type": "text", "id": "dl-path-text", "content": "X:\\抖音收藏下载", "fontSize": 13, "fill": "#E4E4F0" }
+                              ]
+                            },
+                            {
+                              "type": "frame", "id": "dl-btn-browse",
+                              "fill": "#1A1A35", "cornerRadius": 8,
+                              "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                              "children": [
+                                { "type": "text", "id": "dl-btn-browse-txt", "content": "浏览", "fontSize": 12, "fill": "#8888AA" }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "dl-field-rate",
+                      "layout": "vertical", "gap": 6, "width": 120,
+                      "children": [
+                        { "type": "text", "id": "dl-lbl-rate", "content": "请求间隔 (秒)", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                        {
+                          "type": "frame", "id": "dl-input-rate",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "dl-rate-text", "content": "1.5", "fontSize": 13, "fill": "#E4E4F0" }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                { "type": "rectangle", "id": "dl-divider", "width": 736, "height": 1, "fill": "#232350" },
+                {
+                  "type": "frame", "id": "dl-actions",
+                  "layout": "horizontal", "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame", "id": "dl-btn-start",
+                      "fill": "#FE2C55", "cornerRadius": 8,
+                      "padding": { "top": 14, "right": 32, "bottom": 14, "left": 32 },
+                      "children": [
+                        { "type": "text", "id": "dl-btn-start-txt", "content": "开始下载", "fontSize": 14, "fontWeight": 600, "fill": "#FFFFFF" }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "dl-btn-open",
+                      "fill": "#141428", "cornerRadius": 8, "stroke": "#232350", "strokeWidth": 1,
+                      "padding": { "top": 14, "right": 20, "bottom": 14, "left": 20 },
+                      "children": [
+                        { "type": "text", "id": "dl-btn-open-txt", "content": "打开目录", "fontSize": 13, "fill": "#8888AA" }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "dl-btn-failed",
+                      "fill": "#141428", "cornerRadius": 8, "stroke": "#232350", "strokeWidth": 1,
+                      "padding": { "top": 14, "right": 20, "bottom": 14, "left": 20 },
+                      "children": [
+                        { "type": "text", "id": "dl-btn-failed-txt", "content": "失败项", "fontSize": 13, "fill": "#8888AA" }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "dl-btn-log",
+                      "fill": "#141428", "cornerRadius": 8, "stroke": "#232350", "strokeWidth": 1,
+                      "padding": { "top": 14, "right": 20, "bottom": 14, "left": 20 },
+                      "children": [
+                        { "type": "text", "id": "dl-btn-log-txt", "content": "日志", "fontSize": 13, "fill": "#8888AA" }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame", "id": "dl-stats",
+                  "layout": "horizontal", "gap": 24,
+                  "children": [
+                    { "type": "text", "id": "dl-stat-done", "content": "已完成 12", "fontSize": 12, "fill": "#00E676" },
+                    { "type": "text", "id": "dl-stat-skip", "content": "跳过 3", "fontSize": 12, "fill": "#FFAB40" },
+                    { "type": "text", "id": "dl-stat-fail", "content": "失败 0", "fontSize": 12, "fill": "#FF5252" }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame", "id": "card-progress",
+              "name": "Progress Card",
+              "layout": "vertical", "gap": 12,
+              "padding": { "top": 20, "right": 24, "bottom": 20, "left": 24 },
+              "fill": "#141428", "cornerRadius": 12,
+              "stroke": "#232350", "strokeWidth": 1,
+              "children": [
+                { "type": "text", "id": "prog-title", "content": "下载进度", "fontSize": 13, "fontWeight": 600, "fill": "#8888AA" },
+                {
+                  "type": "frame", "id": "prog-bar-bg",
+                  "width": 736, "height": 6,
+                  "fill": "#0C0C22", "cornerRadius": 3,
+                  "children": [
+                    { "type": "frame", "id": "prog-bar-fg", "width": 252, "height": 6, "fill": "#FE2C55", "cornerRadius": 3 }
+                  ]
+                },
+                { "type": "text", "id": "prog-info", "content": "已下载 12/45  ·  35%  ·  速度 3.2 MB/s", "fontSize": 12, "fill": "#8888AA" }
+              ]
+            },
+            {
+              "type": "frame", "id": "card-log",
+              "name": "Log Card",
+              "layout": "vertical", "gap": 0,
+              "fill": "#141428", "cornerRadius": 12,
+              "stroke": "#232350", "strokeWidth": 1,
+              "children": [
+                {
+                  "type": "frame", "id": "log-header",
+                  "layout": "horizontal",
+                  "padding": { "top": 14, "right": 16, "bottom": 14, "left": 16 },
+                  "stroke": "#232350", "strokeWidth": 1,
+                  "children": [
+                    { "type": "text", "id": "log-hdr-text", "content": "运行日志", "fontSize": 12, "fontWeight": 600, "fill": "#8888AA" }
+                  ]
+                },
+                {
+                  "type": "frame", "id": "log-body",
+                  "layout": "vertical", "gap": 4,
+                  "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                  "fill": "#0C0C22",
+                  "children": [
+                    { "type": "text", "id": "log-l1", "content": "14:32:01  开始解析用户主页链接...", "fontSize": 11, "fontFamily": "Cascadia Code", "fill": "#8888AA" },
+                    { "type": "text", "id": "log-l2", "content": "14:32:02  获取到 45 个作品", "fontSize": 11, "fontFamily": "Cascadia Code", "fill": "#8888AA" },
+                    { "type": "text", "id": "log-l3", "content": "14:32:03  [完成] 作品_001.mp4", "fontSize": 11, "fontFamily": "Cascadia Code", "fill": "#00E676" },
+                    { "type": "text", "id": "log-l4", "content": "14:32:05  [下载] 作品_002.mp4", "fontSize": 11, "fontFamily": "Cascadia Code", "fill": "#00E676" },
+                    { "type": "text", "id": "log-l5", "content": "14:32:06  [限流] 作品_003 等待重试...", "fontSize": 11, "fontFamily": "Cascadia Code", "fill": "#FFAB40" },
+                    { "type": "text", "id": "log-l6", "content": "14:32:08  [完成] 作品_004.mp4", "fontSize": 11, "fontFamily": "Cascadia Code", "fill": "#00E676" },
+                    { "type": "text", "id": "log-l7", "content": "14:32:09  [失败] 作品_005: 403 Forbidden", "fontSize": 11, "fontFamily": "Cascadia Code", "fill": "#FF5252" }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "page-merge",
+      "name": "Merge Page",
+      "x": 0, "y": 740,
+      "width": 1060, "height": 720,
+      "fill": "#0D0D1A",
+      "clip": true,
+      "layout": "horizontal",
+      "children": [
+        {
+          "type": "frame", "id": "sidebar-mg",
+          "name": "Sidebar",
+          "width": 220, "height": 720,
+          "fill": "#141428",
+          "layout": "vertical", "gap": 2,
+          "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+          "children": [
+            {
+              "type": "frame", "id": "mg-logo",
+              "layout": "horizontal", "gap": 10,
+              "padding": { "top": 24, "right": 20, "bottom": 16, "left": 20 },
+              "children": [
+                { "type": "rectangle", "id": "mg-logo-icon", "width": 24, "height": 24, "fill": "#FE2C55", "cornerRadius": 6 },
+                { "type": "text", "id": "mg-logo-text", "content": "抖音下载器", "fontSize": 15, "fontWeight": 700, "fill": "#E4E4F0" }
+              ]
+            },
+            {
+              "type": "frame", "id": "mg-nav-dl", "layout": "horizontal",
+              "padding": { "top": 8, "right": 20, "bottom": 8, "left": 20 },
+              "children": [
+                { "type": "text", "id": "mg-nav-dl-txt", "content": "下载", "fontSize": 13, "fill": "#8888AA" }
+              ]
+            },
+            {
+              "type": "frame", "id": "mg-nav-mg", "layout": "horizontal", "gap": 0,
+              "padding": { "top": 8, "right": 20, "bottom": 8, "left": 0 },
+              "children": [
+                { "type": "rectangle", "id": "mg-nav-mg-ind", "width": 3, "height": 20, "fill": "#FE2C55", "cornerRadius": 2 },
+                { "type": "frame", "id": "mg-nav-mg-inner", "layout": "horizontal",
+                  "padding": { "top": 0, "right": 0, "bottom": 0, "left": 17 },
+                  "children": [
+                    { "type": "text", "id": "mg-nav-mg-txt", "content": "文件合并", "fontSize": 13, "fontWeight": 600, "fill": "#E4E4F0" }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame", "id": "mg-nav-st", "layout": "horizontal",
+              "padding": { "top": 8, "right": 20, "bottom": 8, "left": 20 },
+              "children": [
+                { "type": "text", "id": "mg-nav-st-txt", "content": "设置", "fontSize": 13, "fill": "#8888AA" }
+              ]
+            },
+            {
+              "type": "frame", "id": "mg-nav-sy", "layout": "horizontal",
+              "padding": { "top": 8, "right": 20, "bottom": 8, "left": 20 },
+              "children": [
+                { "type": "text", "id": "mg-nav-sy-txt", "content": "仓库同步", "fontSize": 13, "fill": "#8888AA" }
+              ]
+            },
+            { "type": "frame", "id": "mg-spacer", "width": 220, "flex": 1 },
+            {
+              "type": "frame", "id": "mg-footer", "layout": "horizontal",
+              "padding": { "top": 20, "right": 20, "bottom": 20, "left": 20 },
+              "children": [
+                { "type": "text", "id": "mg-footer-text", "content": "v2.0 · Douyin DL", "fontSize": 12, "fill": "#555580" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame", "id": "content-mg",
+          "name": "Main Content",
+          "width": 840, "height": 720,
+          "layout": "vertical", "gap": 16,
+          "padding": { "top": 24, "right": 28, "bottom": 24, "left": 28 },
+          "children": [
+            {
+              "type": "frame", "id": "card-merge",
+              "name": "Merge Card",
+              "layout": "vertical", "gap": 20,
+              "padding": { "top": 24, "right": 24, "bottom": 24, "left": 24 },
+              "fill": "#141428", "cornerRadius": 12,
+              "stroke": "#232350", "strokeWidth": 1,
+              "children": [
+                { "type": "text", "id": "merge-title", "content": "文件合并查重", "fontSize": 14, "fontWeight": 600, "fill": "#E4E4F0" },
+                {
+                  "type": "frame", "id": "merge-dir-a",
+                  "layout": "vertical", "gap": 6,
+                  "children": [
+                    { "type": "text", "id": "merge-lbl-a", "content": "来源目录 A", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                    {
+                      "type": "frame", "id": "merge-row-a",
+                      "layout": "horizontal", "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame", "id": "merge-input-a",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 }, "width": 620,
+                          "children": [
+                            { "type": "text", "id": "merge-input-a-txt", "content": "X:\\下载\\源目录A", "fontSize": 13, "fill": "#E4E4F0" }
+                          ]
+                        },
+                        {
+                          "type": "frame", "id": "merge-btn-a",
+                          "fill": "#1A1A35", "cornerRadius": 8,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "merge-btn-a-txt", "content": "浏览", "fontSize": 12, "fill": "#8888AA" }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame", "id": "merge-dir-b",
+                  "layout": "vertical", "gap": 6,
+                  "children": [
+                    { "type": "text", "id": "merge-lbl-b", "content": "来源目录 B", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                    {
+                      "type": "frame", "id": "merge-row-b",
+                      "layout": "horizontal", "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame", "id": "merge-input-b",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 }, "width": 620,
+                          "children": [
+                            { "type": "text", "id": "merge-input-b-txt", "content": "X:\\下载\\源目录B", "fontSize": 13, "fill": "#E4E4F0" }
+                          ]
+                        },
+                        {
+                          "type": "frame", "id": "merge-btn-b",
+                          "fill": "#1A1A35", "cornerRadius": 8,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "merge-btn-b-txt", "content": "浏览", "fontSize": 12, "fill": "#8888AA" }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame", "id": "merge-dir-out",
+                  "layout": "vertical", "gap": 6,
+                  "children": [
+                    { "type": "text", "id": "merge-lbl-out", "content": "输出目录", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                    {
+                      "type": "frame", "id": "merge-row-out",
+                      "layout": "horizontal", "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame", "id": "merge-input-out",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 }, "width": 620,
+                          "children": [
+                            { "type": "text", "id": "merge-input-out-txt", "content": "X:\\下载\\合并输出", "fontSize": 13, "fill": "#E4E4F0" }
+                          ]
+                        },
+                        {
+                          "type": "frame", "id": "merge-btn-out",
+                          "fill": "#1A1A35", "cornerRadius": 8,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "merge-btn-out-txt", "content": "浏览", "fontSize": 12, "fill": "#8888AA" }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame", "id": "merge-opts",
+                  "layout": "horizontal", "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame", "id": "merge-field-mode",
+                      "layout": "vertical", "gap": 6, "width": 180,
+                      "children": [
+                        { "type": "text", "id": "merge-lbl-mode", "content": "合并模式", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                        {
+                          "type": "frame", "id": "merge-sel-mode",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "merge-sel-mode-txt", "content": "复制 (保留源)", "fontSize": 13, "fill": "#E4E4F0" }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "merge-field-ext",
+                      "layout": "vertical", "gap": 6, "width": 180,
+                      "children": [
+                        { "type": "text", "id": "merge-lbl-ext", "content": "扩展名过滤", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                        {
+                          "type": "frame", "id": "merge-input-ext",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "merge-input-ext-txt", "content": ".mp4, .jpg", "fontSize": 13, "fill": "#E4E4F0" }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame", "id": "merge-checks",
+                  "layout": "horizontal", "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame", "id": "merge-chk-recurse",
+                      "layout": "horizontal", "gap": 8,
+                      "children": [
+                        { "type": "rectangle", "id": "merge-chk-recurse-box", "width": 16, "height": 16, "fill": "#FE2C55", "cornerRadius": 4 },
+                        { "type": "text", "id": "merge-chk-recurse-lbl", "content": "递归扫描子目录", "fontSize": 13, "fill": "#E4E4F0" }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "merge-chk-clear",
+                      "layout": "horizontal", "gap": 8,
+                      "children": [
+                        { "type": "rectangle", "id": "merge-chk-clear-box", "width": 16, "height": 16, "fill": "#0C0C22", "cornerRadius": 4, "stroke": "#2A2A50", "strokeWidth": 1 },
+                        { "type": "text", "id": "merge-chk-clear-lbl", "content": "清空输出目录", "fontSize": 13, "fill": "#8888AA" }
+                      ]
+                    }
+                  ]
+                },
+                { "type": "rectangle", "id": "merge-divider", "width": 736, "height": 1, "fill": "#232350" },
+                {
+                  "type": "frame", "id": "merge-actions",
+                  "layout": "vertical", "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame", "id": "merge-btn-start",
+                      "fill": "#FE2C55", "cornerRadius": 8,
+                      "padding": { "top": 14, "right": 32, "bottom": 14, "left": 32 }, "width": 160,
+                      "children": [
+                        { "type": "text", "id": "merge-btn-start-txt", "content": "开始合并查重", "fontSize": 14, "fontWeight": 600, "fill": "#FFFFFF" }
+                      ]
+                    },
+                    { "type": "text", "id": "merge-status", "content": "扫描完成：找到 1,250 个文件，重复 87 个", "fontSize": 12, "fill": "#00E676" },
+                    {
+                      "type": "frame", "id": "merge-stats",
+                      "layout": "horizontal", "gap": 24,
+                      "children": [
+                        { "type": "text", "id": "merge-stat-scan", "content": "已扫描 1,250", "fontSize": 12, "fill": "#E4E4F0" },
+                        { "type": "text", "id": "merge-stat-save", "content": "已保存 1,163", "fontSize": 12, "fill": "#00E676" },
+                        { "type": "text", "id": "merge-stat-skip", "content": "跳过重复 87", "fontSize": 12, "fill": "#FFAB40" }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "merge-prog-bg",
+                      "width": 736, "height": 6, "fill": "#0C0C22", "cornerRadius": 3,
+                      "children": [
+                        { "type": "frame", "id": "merge-prog-fg", "width": 685, "height": 6, "fill": "#FE2C55", "cornerRadius": 3 }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "page-settings",
+      "name": "Settings Page",
+      "x": 0, "y": 1480,
+      "width": 1060, "height": 720,
+      "fill": "#0D0D1A",
+      "clip": true,
+      "layout": "horizontal",
+      "children": [
+        {
+          "type": "frame", "id": "sidebar-st",
+          "name": "Sidebar",
+          "width": 220, "height": 720,
+          "fill": "#141428",
+          "layout": "vertical", "gap": 2,
+          "padding": { "top": 0, "right": 0, "bottom": 0, "left": 0 },
+          "children": [
+            {
+              "type": "frame", "id": "st-logo",
+              "layout": "horizontal", "gap": 10,
+              "padding": { "top": 24, "right": 20, "bottom": 16, "left": 20 },
+              "children": [
+                { "type": "rectangle", "id": "st-logo-icon", "width": 24, "height": 24, "fill": "#FE2C55", "cornerRadius": 6 },
+                { "type": "text", "id": "st-logo-text", "content": "抖音下载器", "fontSize": 15, "fontWeight": 700, "fill": "#E4E4F0" }
+              ]
+            },
+            {
+              "type": "frame", "id": "st-nav-dl", "layout": "horizontal",
+              "padding": { "top": 8, "right": 20, "bottom": 8, "left": 20 },
+              "children": [
+                { "type": "text", "id": "st-nav-dl-txt", "content": "下载", "fontSize": 13, "fill": "#8888AA" }
+              ]
+            },
+            {
+              "type": "frame", "id": "st-nav-mg", "layout": "horizontal",
+              "padding": { "top": 8, "right": 20, "bottom": 8, "left": 20 },
+              "children": [
+                { "type": "text", "id": "st-nav-mg-txt", "content": "文件合并", "fontSize": 13, "fill": "#8888AA" }
+              ]
+            },
+            {
+              "type": "frame", "id": "st-nav-st", "layout": "horizontal", "gap": 0,
+              "padding": { "top": 8, "right": 20, "bottom": 8, "left": 0 },
+              "children": [
+                { "type": "rectangle", "id": "st-nav-st-ind", "width": 3, "height": 20, "fill": "#FE2C55", "cornerRadius": 2 },
+                { "type": "frame", "id": "st-nav-st-inner", "layout": "horizontal",
+                  "padding": { "top": 0, "right": 0, "bottom": 0, "left": 17 },
+                  "children": [
+                    { "type": "text", "id": "st-nav-st-txt", "content": "设置", "fontSize": 13, "fontWeight": 600, "fill": "#E4E4F0" }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame", "id": "st-nav-sy", "layout": "horizontal",
+              "padding": { "top": 8, "right": 20, "bottom": 8, "left": 20 },
+              "children": [
+                { "type": "text", "id": "st-nav-sy-txt", "content": "仓库同步", "fontSize": 13, "fill": "#8888AA" }
+              ]
+            },
+            { "type": "frame", "id": "st-spacer", "width": 220, "flex": 1 },
+            {
+              "type": "frame", "id": "st-footer", "layout": "horizontal",
+              "padding": { "top": 20, "right": 20, "bottom": 20, "left": 20 },
+              "children": [
+                { "type": "text", "id": "st-footer-text", "content": "v2.0 · Douyin DL", "fontSize": 12, "fill": "#555580" }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame", "id": "content-st",
+          "name": "Main Content",
+          "width": 840, "height": 720,
+          "layout": "vertical", "gap": 16,
+          "padding": { "top": 24, "right": 28, "bottom": 24, "left": 28 },
+          "children": [
+            {
+              "type": "frame", "id": "card-settings",
+              "name": "Settings Card",
+              "layout": "vertical", "gap": 20,
+              "padding": { "top": 24, "right": 24, "bottom": 24, "left": 24 },
+              "fill": "#141428", "cornerRadius": 12,
+              "stroke": "#232350", "strokeWidth": 1,
+              "children": [
+                {
+                  "type": "frame", "id": "settings-header",
+                  "layout": "horizontal", "gap": 0,
+                  "children": [
+                    { "type": "text", "id": "settings-title", "content": "下载设置", "fontSize": 14, "fontWeight": 600, "fill": "#E4E4F0", "width": 656 },
+                    {
+                      "type": "frame", "id": "settings-btn-save",
+                      "fill": "#FE2C55", "cornerRadius": 8,
+                      "padding": { "top": 10, "right": 24, "bottom": 10, "left": 24 },
+                      "children": [
+                        { "type": "text", "id": "settings-btn-save-txt", "content": "保存", "fontSize": 13, "fontWeight": 600, "fill": "#FFFFFF" }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame", "id": "settings-row-1",
+                  "layout": "horizontal", "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame", "id": "settings-field-path",
+                      "layout": "vertical", "gap": 6, "width": 400,
+                      "children": [
+                        { "type": "text", "id": "settings-lbl-path", "content": "下载目录", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                        {
+                          "type": "frame", "id": "settings-path-row",
+                          "layout": "horizontal", "gap": 8,
+                          "children": [
+                            {
+                              "type": "frame", "id": "settings-input-path",
+                              "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                              "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 }, "width": 332,
+                              "children": [
+                                { "type": "text", "id": "settings-path-txt", "content": "X:\\抖音收藏下载", "fontSize": 13, "fill": "#E4E4F0" }
+                              ]
+                            },
+                            {
+                              "type": "frame", "id": "settings-btn-browse",
+                              "fill": "#1A1A35", "cornerRadius": 8,
+                              "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                              "children": [
+                                { "type": "text", "id": "settings-btn-browse-txt", "content": "浏览", "fontSize": 12, "fill": "#8888AA" }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "settings-field-mode",
+                      "layout": "vertical", "gap": 6, "width": 160,
+                      "children": [
+                        { "type": "text", "id": "settings-lbl-mode", "content": "默认模式", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                        {
+                          "type": "frame", "id": "settings-sel-mode",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "settings-sel-mode-txt", "content": "post (主页)", "fontSize": 13, "fill": "#E4E4F0" }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "settings-field-conc",
+                      "layout": "vertical", "gap": 6, "width": 80,
+                      "children": [
+                        { "type": "text", "id": "settings-lbl-conc", "content": "并发数", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                        {
+                          "type": "frame", "id": "settings-input-conc",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "settings-conc-txt", "content": "5", "fontSize": 13, "fill": "#E4E4F0" }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame", "id": "settings-row-2",
+                  "layout": "horizontal", "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame", "id": "settings-field-rate",
+                      "layout": "vertical", "gap": 6, "width": 120,
+                      "children": [
+                        { "type": "text", "id": "settings-lbl-rate", "content": "请求间隔 (秒)", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                        {
+                          "type": "frame", "id": "settings-input-rate",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "settings-rate-txt", "content": "1.5", "fontSize": 13, "fill": "#E4E4F0" }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "settings-field-timeout",
+                      "layout": "vertical", "gap": 6, "width": 120,
+                      "children": [
+                        { "type": "text", "id": "settings-lbl-timeout", "content": "超时 (秒)", "fontSize": 11, "fontWeight": 600, "fill": "#555580" },
+                        {
+                          "type": "frame", "id": "settings-input-timeout",
+                          "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                          "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                          "children": [
+                            { "type": "text", "id": "settings-timeout-txt", "content": "30", "fontSize": 13, "fill": "#E4E4F0" }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                { "type": "rectangle", "id": "settings-divider", "width": 736, "height": 1, "fill": "#232350" },
+                {
+                  "type": "frame", "id": "settings-checks",
+                  "layout": "horizontal", "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame", "id": "settings-chk-cover",
+                      "layout": "horizontal", "gap": 8,
+                      "children": [
+                        { "type": "rectangle", "id": "settings-chk-cover-box", "width": 16, "height": 16, "fill": "#FE2C55", "cornerRadius": 4 },
+                        { "type": "text", "id": "settings-chk-cover-lbl", "content": "下载封面", "fontSize": 13, "fill": "#E4E4F0" }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "settings-chk-meta",
+                      "layout": "horizontal", "gap": 8,
+                      "children": [
+                        { "type": "rectangle", "id": "settings-chk-meta-box", "width": 16, "height": 16, "fill": "#FE2C55", "cornerRadius": 4 },
+                        { "type": "text", "id": "settings-chk-meta-lbl", "content": "下载元数据", "fontSize": 13, "fill": "#E4E4F0" }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "settings-chk-author",
+                      "layout": "horizontal", "gap": 8,
+                      "children": [
+                        { "type": "rectangle", "id": "settings-chk-author-box", "width": 16, "height": 16, "fill": "#FE2C55", "cornerRadius": 4 },
+                        { "type": "text", "id": "settings-chk-author-lbl", "content": "按作者分文件夹", "fontSize": 13, "fill": "#E4E4F0" }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "settings-chk-music",
+                      "layout": "horizontal", "gap": 8,
+                      "children": [
+                        { "type": "rectangle", "id": "settings-chk-music-box", "width": 16, "height": 16, "fill": "#0C0C22", "cornerRadius": 4, "stroke": "#2A2A50", "strokeWidth": 1 },
+                        { "type": "text", "id": "settings-chk-music-lbl", "content": "下载音乐", "fontSize": 13, "fill": "#8888AA" }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame", "id": "card-auth",
+              "name": "Auth Card",
+              "layout": "vertical", "gap": 16,
+              "padding": { "top": 24, "right": 24, "bottom": 24, "left": 24 },
+              "fill": "#141428", "cornerRadius": 12,
+              "stroke": "#232350", "strokeWidth": 1,
+              "children": [
+                { "type": "text", "id": "auth-title", "content": "Cookie / 认证", "fontSize": 14, "fontWeight": 600, "fill": "#E4E4F0" },
+                { "type": "text", "id": "auth-desc", "content": "用于访问需要登录的抖音内容，如私密账号、收藏夹等", "fontSize": 12, "fill": "#8888AA" },
+                {
+                  "type": "frame", "id": "auth-row",
+                  "layout": "horizontal", "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame", "id": "auth-input-cookie",
+                      "fill": "#0C0C22", "cornerRadius": 8, "stroke": "#2A2A50", "strokeWidth": 1,
+                      "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 }, "width": 480,
+                      "children": [
+                        { "type": "text", "id": "auth-cookie-txt", "content": "已加载 · sessionid=abc123...", "fontSize": 13, "fill": "#00E676" }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "auth-btn-fetch",
+                      "fill": "#1A1A35", "cornerRadius": 8,
+                      "padding": { "top": 12, "right": 20, "bottom": 12, "left": 20 },
+                      "children": [
+                        { "type": "text", "id": "auth-btn-fetch-txt", "content": "浏览器获取", "fontSize": 13, "fill": "#8888AA" }
+                      ]
+                    },
+                    {
+                      "type": "frame", "id": "auth-btn-clear",
+                      "fill": "#1A1A35", "cornerRadius": 8,
+                      "padding": { "top": 12, "right": 20, "bottom": 12, "left": 20 },
+                      "children": [
+                        { "type": "text", "id": "auth-btn-clear-txt", "content": "清除", "fontSize": 13, "fill": "#8888AA" }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

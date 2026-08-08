@@ -1,0 +1,326 @@
+{
+  "version": "2.14",
+  "children": [
+    {
+      "type": "frame",
+      "id": "main",
+      "name": "Douyin Downloader",
+      "x": 0,
+      "y": 0,
+      "width": 1200,
+      "height": 800,
+      "fill": "#0F1117",
+      "clip": true,
+      "layout": "horizontal",
+      "children": [
+        {
+          "type": "frame",
+          "id": "sidebar",
+          "name": "Sidebar",
+          "width": 220,
+          "height": 800,
+          "fill": "#1A1D27",
+          "layout": "vertical",
+          "gap": 2,
+          "padding": { "top": 24, "right": 12, "bottom": 24, "left": 12 },
+          "children": [
+            {
+              "type": "frame",
+              "id": "logo",
+              "name": "Brand",
+              "layout": "horizontal",
+              "gap": 10,
+              "padding": { "top": 0, "right": 0, "bottom": 28, "left": 4 },
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "logo-icon",
+                  "library": "lucide",
+                  "icon": "download",
+                  "width": 24,
+                  "height": 24,
+                  "fill": "#6366F1"
+                },
+                {
+                  "type": "text",
+                  "id": "logo-text",
+                  "content": "抖音下载器",
+                  "fontSize": 15,
+                  "fontWeight": 700,
+                  "fill": "#E4E4E7",
+                  "textGrowth": "auto"
+                }
+              ]
+            },
+            {
+              "type": "text",
+              "id": "nav-label",
+              "content": "导航",
+              "fontSize": 9,
+              "fontWeight": 600,
+              "fill": "#71717A",
+              "textGrowth": "auto",
+              "layout": "horizontal",
+              "padding": { "left": 4, "top": 8, "bottom": 4 }
+            },
+            {
+              "type": "frame",
+              "id": "nav-download",
+              "layout": "horizontal",
+              "gap": 10,
+              "cornerRadius": 8,
+              "fill": "#6366F1",
+              "padding": { "top": 10, "right": 12, "bottom": 10, "left": 12 },
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "ic-down",
+                  "library": "lucide",
+                  "icon": "arrow-down-to-line",
+                  "width": 18,
+                  "height": 18,
+                  "fill": "#FFFFFF"
+                },
+                {
+                  "type": "text",
+                  "id": "tx-down",
+                  "content": "下载",
+                  "fontSize": 13,
+                  "fontWeight": 600,
+                  "fill": "#FFFFFF",
+                  "textGrowth": "auto"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "nav-merge",
+              "layout": "horizontal",
+              "gap": 10,
+              "cornerRadius": 8,
+              "padding": { "top": 10, "right": 12, "bottom": 10, "left": 12 },
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "ic-merge",
+                  "library": "lucide",
+                  "icon": "git-merge",
+                  "width": 18,
+                  "height": 18,
+                  "fill": "#71717A"
+                },
+                {
+                  "type": "text",
+                  "id": "tx-merge",
+                  "content": "文件合并",
+                  "fontSize": 13,
+                  "fontWeight": 400,
+                  "fill": "#71717A",
+                  "textGrowth": "auto"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "nav-settings",
+              "layout": "horizontal",
+              "gap": 10,
+              "cornerRadius": 8,
+              "padding": { "top": 10, "right": 12, "bottom": 10, "left": 12 },
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "ic-settings",
+                  "library": "lucide",
+                  "icon": "settings",
+                  "width": 18,
+                  "height": 18,
+                  "fill": "#71717A"
+                },
+                {
+                  "type": "text",
+                  "id": "tx-settings",
+                  "content": "设置",
+                  "fontSize": 13,
+                  "fontWeight": 400,
+                  "fill": "#71717A",
+                  "textGrowth": "auto"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "nav-sync",
+              "layout": "horizontal",
+              "gap": 10,
+              "cornerRadius": 8,
+              "padding": { "top": 10, "right": 12, "bottom": 10, "left": 12 },
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "ic-sync",
+                  "library": "lucide",
+                  "icon": "refresh-cw",
+                  "width": 18,
+                  "height": 18,
+                  "fill": "#71717A"
+                },
+                {
+                  "type": "text",
+                  "id": "tx-sync",
+                  "content": "仓库同步",
+                  "fontSize": 13,
+                  "fontWeight": 400,
+                  "fill": "#71717A",
+                  "textGrowth": "auto"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "content",
+          "name": "Content",
+          "layout": "vertical",
+          "gap": 24,
+          "padding": { "top": 32, "right": 36, "bottom": 32, "left": 36 },
+          "width": 980,
+          "height": 800,
+          "children": [
+            {
+              "type": "text",
+              "id": "page-title",
+              "content": "下载",
+              "fontSize": 24,
+              "fontWeight": 700,
+              "fill": "#E4E4E7",
+              "textGrowth": "auto"
+            },
+            {
+              "type": "frame",
+              "id": "card-task",
+              "name": "New Task",
+              "layout": "vertical",
+              "gap": 16,
+              "cornerRadius": 12,
+              "fill": "#1A1D27",
+              "stroke": "#2D3143",
+              "strokeWidth": 1,
+              "padding": { "top": 24, "right": 24, "bottom": 24, "left": 24 },
+              "children": [
+                {
+                  "type": "text",
+                  "id": "card-title",
+                  "content": "新建下载任务",
+                  "fontSize": 14,
+                  "fontWeight": 600,
+                  "fill": "#E4E4E7",
+                  "textGrowth": "auto"
+                },
+                {
+                  "type": "frame",
+                  "id": "input-row",
+                  "layout": "horizontal",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "url-input",
+                      "layout": "horizontal",
+                      "gap": 8,
+                      "cornerRadius": 8,
+                      "fill": "#252836",
+                      "stroke": "#2D3143",
+                      "strokeWidth": 1,
+                      "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                      "width": 520,
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "ic-link",
+                          "library": "lucide",
+                          "icon": "link",
+                          "width": 16,
+                          "height": 16,
+                          "fill": "#71717A"
+                        },
+                        {
+                          "type": "text",
+                          "id": "url-placeholder",
+                          "content": "粘贴抖音链接...",
+                          "fontSize": 13,
+                          "fill": "#52525B",
+                          "textGrowth": "auto"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "btn-paste",
+                      "layout": "horizontal",
+                      "gap": 6,
+                      "cornerRadius": 8,
+                      "fill": "#252836",
+                      "stroke": "#2D3143",
+                      "strokeWidth": 1,
+                      "padding": { "top": 12, "right": 16, "bottom": 12, "left": 16 },
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "ic-paste",
+                          "library": "lucide",
+                          "icon": "clipboard-paste",
+                          "width": 14,
+                          "height": 14,
+                          "fill": "#71717A"
+                        },
+                        {
+                          "type": "text",
+                          "id": "tx-paste",
+                          "content": "粘贴",
+                          "fontSize": 13,
+                          "fill": "#A1A1AA",
+                          "textGrowth": "auto"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "btn-start",
+                      "layout": "horizontal",
+                      "gap": 8,
+                      "cornerRadius": 8,
+                      "fill": "#6366F1",
+                      "padding": { "top": 12, "right": 28, "bottom": 12, "left": 28 },
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "ic-play",
+                          "library": "lucide",
+                          "icon": "play",
+                          "width": 15,
+                          "height": 15,
+                          "fill": "#FFFFFF"
+                        },
+                        {
+                          "type": "text",
+                          "id": "tx-start",
+                          "content": "开始下载",
+                          "fontSize": 13,
+                          "fontWeight": 600,
+                          "fill": "#FFFFFF",
+                          "textGrowth": "auto"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

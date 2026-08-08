@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>抖音下载器</title>
+<style>
+:root {
+  --bg: #0d0d1a; --surface: #141428; --surface2: #1a1a35;
+  --border: #232350; --border-light: #2a2a55;
+  --accent: #fe2c55; --accent-dim: #c72045;
+  --text: #e4e4f0; --text-secondary: #8888aa; --text-muted: #555580;
+  --success: #00e676; --warning: #ffab40; --error: #ff5252;
+  --input-bg: #0c0c22; --input-border: #2a2a50;
+  --radius: 12px; --radius-sm: 8px;
+  --titlebar-h: 40px; --log-w: 400px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; overflow: hidden; font-family: -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
+body { display: flex; flex-direction: column; }
+
+/* ── Titlebar ── */
+.titlebar { display: none; height: var(--titlebar-h); background: #0a0a1e; flex-shrink: 0; align-items: center; justify-content: space-between; padding: 0 6px 0 16px; user-select: none; -webkit-app-region: drag; border-bottom: 1px solid #12122a; }
+.titlebar.visible { display: flex; }
+.titlebar-left { display: flex; align-items: center; gap: 10px; }
+.titlebar-logo { width: 20px; height: 20px; border-radius: 5px; }
+.titlebar-title { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+.titlebar-controls { display: flex; -webkit-app-region: no-drag; }
+.titlebar-btn { width: 44px; height: var(--titlebar-h); border: none; background: none; color: var(--text-muted); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .12s, color .12s; }
+.titlebar-btn:hover { background: #1e1e3a; color: var(--text); }
+.titlebar-btn.close:hover { background: var(--error); color: #fff; }
+
+/* ── App Shell ── */
+#app { display: flex; flex: 1; min-height: 0; position: relative; overflow: hidden; }
+
+/* ── Sidebar ── */
+.sidebar { width: 220px; background: var(--surface); flex-shrink: 0; display: flex; flex-direction: column; border-right: 1px solid var(--border); padding: 20px 0 12px; }
+.sidebar-logo { padding: 0 20px 20px; display: flex; align-items: center; gap: 10px; }
+.sidebar-logo img { width: 32px; height: 32px; border-radius: 8px; }
+.sidebar-logo span { font-size: 16px; font-weight: 700; }
+.nav-item { padding: 10px 20px; color: var(--text-secondary); font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 10px; transition: all .12s; border-left: 3px solid transparent; }
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { color: var(--accent); background: rgba(254,44,85,.08); border-left-color: var(--accent); font-weight: 600; }
+.nav-item .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.nav-item .dot.green { background: var(--success); box-shadow: 0 0 6px var(--success); }
+.nav-item .dot.red { background: var(--error); box-shadow: 0 0 6px var(--error); }
+.nav-spacer { flex: 1; }
+.nav-footer { padding: 0 20px; font-size: 11px; color: var(--text-muted); }
+
+/* ── Main Content Area ── */
+.main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; transition: margin-right .3s; }
+.main-area.log-open { margin-right: var(--log-w); }
+
+/* ── Page Container ── */
+.page { flex: 1; overflow-y: auto; padding: 24px 28px; display: none; flex-direction: column; gap: 16px; }
+.page.active { display: flex; }
+.page::-webkit-scrollbar { width: 6px; }
+.page::-webkit-scrollbar-thumb { background: #2a2a50; border-radius: 3px; }
+
+/* ── Card ── */
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+.card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.card-header h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .8px; }
+.card-divider { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
+
+/* ── Status Pill ── */
+.status-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+.status-badge.idle { background: #0a2a1a; color: var(--success); }
+.status-badge.fetching { background: #2a200a; color: var(--warning); }
+.status-badge.downloading { background: #2a0a14; color: var(--accent); }
+.status-badge .pulse { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.status-badge.downloading .pulse, .status-badge.fetching .pulse { animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── Buttons ── */
+.btn { padding: 8px 16px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--input-bg); color: var(--text); font-size: 13px; cursor: pointer; transition: all .15s; white-space: nowrap; font-weight: 500; }
+.btn:hover:not(:disabled) { border-color: var(--border-light); background: var(--surface2); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 700; }
+.btn-primary:hover:not(:disabled) { background: var(--accent-dim); border-color: var(--accent-dim); }
+.btn-danger { color: var(--error); border-color: rgba(255,82,82,.2); }
+.btn-danger:hover:not(:disabled) { background: rgba(255,82,82,.1); border-color: var(--error); }
+.btn-sm { padding: 4px 10px; font-size: 12px; border-radius: 6px; }
+.btn-lg { padding: 12px 24px; font-size: 15px; }
+.btn-icon { width: 32px; height: 32px; padding: 0; display: flex; align-items: center; justify-content: center; border-radius: 50%; }
+
+/* ── Form Fields ── */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.form-grid.col2 { grid-template-columns: 1fr 1fr; }
+.form-grid.col1 { grid-template-columns: 1fr; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field.full { grid-column: 1 / -1; }
+.field.span2 { grid-column: span 2; }
+.field label { font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+.field input, .field select { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 8px 10px; color: var(--text); font-size: 13px; outline: none; transition: border-color .15s; font-family: inherit; }
+.field input:focus, .field select:focus { border-color: var(--accent); }
+.field select { cursor: pointer; }
+.field input[readonly] { opacity: .6; cursor: default; }
+.input-row { display: flex; gap: 8px; }
+.input-row input { flex: 1; }
+.checkbox-group { display: flex; gap: 16px; flex-wrap: wrap; padding-top: 2px; }
+.checkbox-group label { font-size: 12px; color: var(--text-secondary); display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.checkbox-group input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; }
+
+/* ── Action Bar ── */
+.action-bar { display: flex; gap: 10px; align-items: center; }
+.btn-download { flex: 1; padding: 14px; font-size: 16px; font-weight: 700; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; gap: 10px; }
+.btn-download .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .8s linear infinite; display: none; }
+.btn-download.running .spinner { display: block; }
+.btn-download.running .play-icon { display: none; }
+.btn-download.running { background: var(--error); border-color: var(--error); }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Stats ── */
+.stats-row { display: flex; gap: 20px; padding: 4px 0; font-size: 12px; color: var(--text-muted); }
+.stats-row .stat .val { color: var(--text); font-weight: 600; margin-left: 2px; }
+.stats-row .stat .val.ok { color: var(--success); }
+.stats-row .stat .val.skip { color: var(--warning); }
+.stats-row .stat .val.fail { color: var(--error); }
+
+/* ── Monitor ── */
+.monitor-bar { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); font-size: 12px; }
+.monitor-left { display: flex; align-items: center; gap: 8px; }
+.monitor-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); }
+.monitor-dot.active { background: var(--success); box-shadow: 0 0 8px var(--success); animation: pulse 1.5s infinite; }
+.monitor-right { display: flex; align-items: center; gap: 8px; }
+.monitor-right label { color: var(--text-muted); font-size: 11px; }
+.monitor-right input { width: 56px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 6px 8px; color: var(--text); font-size: 13px; text-align: center; outline: none; }
+.monitor-right input:focus { border-color: var(--accent); }
+.monitor-right input:disabled { opacity: .5; }
+
+/* ── Log Drawer ── */
+.log-drawer { position: absolute; top: 0; right: 0; bottom: 0; width: var(--log-w); background: var(--surface); border-left: 1px solid var(--border); display: flex; flex-direction: column; transform: translateX(100%); transition: transform .3s ease; z-index: 100; }
+.log-drawer.open { transform: translateX(0); }
+.log-drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+.log-drawer-header h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .5px; }
+.log-drawer-actions { display: flex; gap: 6px; }
+.log-viewer { flex: 1; min-height: 0; overflow-y: auto; background: #09091a; margin: 6px 8px 8px; border-radius: 6px; padding: 10px 12px; font-family: 'Cascadia Code','Consolas','Courier New',monospace; font-size: 11.5px; line-height: 1.5; }
+.log-viewer::-webkit-scrollbar { width: 5px; }
+.log-viewer::-webkit-scrollbar-thumb { background: #2a2a50; border-radius: 3px; }
+.log-line { animation: fadeIn .15s; word-break: break-all; padding: 1px 0; }
+.log-line .ts { color: var(--text-muted); margin-right: 6px; user-select: none; }
+.log-line.success { color: var(--success); }
+.log-line.error { color: var(--error); }
+.log-line.warning { color: var(--warning); }
+.log-line.system { color: #5b9bd5; }
+.log-placeholder { color: var(--text-muted); font-style: italic; text-align: center; padding: 40px 0; font-size: 12px; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Log Tab ── */
+.log-tab { position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 28px; height: 80px; background: var(--surface); border: 1px solid var(--border); border-right: none; border-radius: var(--radius-sm) 0 0 var(--radius-sm); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 101; transition: right .3s; color: var(--text-muted); font-size: 11px; writing-mode: vertical-rl; user-select: none; }
+.log-tab:hover { background: var(--surface2); color: var(--text-secondary); }
+.log-tab.open { right: var(--log-w); }
+.log-tab .badge { position: absolute; top: 6px; right: 6px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); display: none; }
+.log-tab .badge.active { display: block; }
+
+/* ── Toast ── */
+.toast { position: fixed; top: 56px; right: 24px; padding: 14px 22px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; color: #fff; z-index: 9999; animation: toastIn .3s; pointer-events: none; max-width: 380px; }
+.toast.success { background: #0d3a1a; border: 1px solid var(--success); }
+.toast.error { background: #3a1111; border: 1px solid var(--error); }
+.toast.info { background: #112233; border: 1px solid #5b9bd5; }
+@keyframes toastIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+
+/* ── Modal ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 200; display: none; align-items: center; justify-content: center; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); width: 640px; max-width: 94vw; max-height: 80vh; display: flex; flex-direction: column; animation: modalIn .2s; }
+@keyframes modalIn { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: none; } }
+.modal-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.modal-header h3 { font-size: 15px; font-weight: 700; }
+.modal-close { background: none; border: none; color: var(--text-muted); font-size: 18px; cursor: pointer; padding: 4px 8px; border-radius: 4px; }
+.modal-close:hover { background: var(--surface2); color: var(--text); }
+.modal-toolbar { display: flex; gap: 6px; padding: 10px 20px; flex-shrink: 0; flex-wrap: wrap; align-items: center; border-bottom: 1px solid var(--border); }
+.modal-toolbar .count { font-size: 12px; color: var(--text-muted); margin-right: auto; }
+.modal-body { flex: 1; overflow-y: auto; padding: 8px 20px 16px; }
+.modal-body::-webkit-scrollbar { width: 5px; }
+.modal-body::-webkit-scrollbar-thumb { background: #2a2a50; border-radius: 3px; }
+
+.fi-empty { text-align: center; padding: 40px 0; color: var(--text-muted); font-size: 13px; }
+.fi-item { padding: 12px 0; border-bottom: 1px solid var(--border); display: flex; gap: 10px; align-items: flex-start; }
+.fi-item:last-child { border-bottom: none; }
+.fi-info { flex: 1; min-width: 0; }
+.fi-title { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fi-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; display: flex; gap: 10px; flex-wrap: wrap; }
+.fi-reason { font-size: 11px; color: var(--error); margin-top: 3px; }
+.fi-tag { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; flex-shrink: 0; }
+.fi-tag.failed { background: #2a0a10; color: var(--error); }
+.fi-tag.ignored { background: #2a200a; color: var(--warning); }
+.fi-actions { display: flex; gap: 4px; flex-shrink: 0; align-self: center; }
+
+/* ── Cookie Guide ── */
+.cookie-guide { margin-top: 12px; padding: 10px 14px; background: #1a2010; border: 1px solid #2a3a1a; border-radius: 8px; font-size: 12px; color: var(--warning); line-height: 1.5; }
+.cookie-guide strong { color: #fff; }
+
+/* ── Responsive form ── */
+@media (max-width: 800px) {
+  .sidebar { display: none; }
+  .form-grid { grid-template-columns: 1fr; }
+  .form-grid.col2 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- Custom Titlebar -->
+<div class="titlebar" id="customTitlebar">
+  <div class="titlebar-left">
+    <img class="titlebar-logo" src="/logo.png" alt="" onerror="this.style.display='none'">
+    <span class="titlebar-title">抖音下载器</span>
+  </div>
+  <div class="titlebar-controls">
+    <button class="titlebar-btn" onclick="qtBridge?.minimize()" title="最小化">─</button>
+    <button class="titlebar-btn" onclick="qtBridge?.toggleMaximize()" title="最大化">□</button>
+    <button class="titlebar-btn close" onclick="qtBridge?.closeWindow()" title="关闭">✕</button>
+  </div>
+</div>
+
+<div id="app">
+  <!-- Sidebar Navigation -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <img src="/logo.png" alt="" onerror="this.style.display='none'">
+      <span>抖音下载器</span>
+    </div>
+    <div class="nav-item active" data-page="download" onclick="switchPage('download')">
+      <span>📥</span> 下载
+    </div>
+    <div class="nav-item" data-page="merge" onclick="switchPage('merge')">
+      <span>🔀</span> 文件合并
+    </div>
+    <div class="nav-item" data-page="settings" onclick="switchPage('settings')">
+      <span>⚙️</span> 设置
+    </div>
+    <div class="nav-item" data-page="sync" onclick="switchPage('sync')">
+      <span>🔄</span> 仓库同步
+    </div>
+    <div class="nav-spacer"></div>
+    <div class="nav-footer">v2.0 · Douyin DL</div>
+  </nav>
+
+  <!-- Main Content -->
+  <div class="main-area" id="mainArea">
+
+    <!-- PAGE: Download -->
+    <div class="page active" id="page-download">
+      <!-- Status + Cookie -->
+      <div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="status-badge idle" id="statusBadge">
+            <span class="pulse"></span>
+            <span id="statusText">就绪</span>
+          </span>
+          <span style="font-size:12px;color:var(--text-muted)" id="cookieText">Cookie 检查中...</span>
+        </div>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-primary btn-sm" id="btnFetch" onclick="fetchCookie()">获取 Cookie</button>
+          <button class="btn btn-primary btn-sm" id="btnConfirm" onclick="confirmCookie()" style="display:none">确认登录</button>
+        </div>
+      </div>
+
+      <div class="cookie-guide" id="cookieGuide" style="display:none">
+        浏览器已打开，请扫码登录抖音后点击「确认登录」
+      </div>
+
+      <!-- Download Action -->
+      <div class="action-bar">
+        <button class="btn btn-primary btn-download" id="btnDownload" onclick="toggleDownload()">
+          <span class="play-icon">▶</span>
+          <span class="spinner"></span>
+          <span id="btnDownloadText">开始下载</span>
+        </button>
+        <button class="btn" onclick="openDir()">📂</button>
+        <button class="btn" id="btnFailed" onclick="openFailedModal()">失败项</button>
+        <button class="btn" id="btnLog" onclick="toggleLog()">📋 日志</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <span class="stat">已下载 <span class="val ok" id="sbCompleted">0</span></span>
+        <span class="stat">跳过 <span class="val skip" id="sbSkipped">0</span></span>
+        <span class="stat">失败 <span class="val fail" id="sbFailed">0</span></span>
+      </div>
+
+      <!-- Monitor -->
+      <div class="monitor-bar">
+        <div class="monitor-left">
+          <span class="monitor-dot" id="monitorDot"></span>
+          <span id="monitorText">监听未启动</span>
+        </div>
+        <div class="monitor-right">
+          <label>间隔</label>
+          <input type="number" id="monitorInterval" value="60" min="5" max="1440">
+          <span style="font-size:11px;color:var(--text-muted)">分钟</span>
+          <button class="btn btn-sm" id="btnMonitor" onclick="toggleMonitor()">开启</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Merge -->
+    <div class="page" id="page-merge">
+      <div class="card">
+        <div class="card-header"><h3>文件合并查重</h3></div>
+        <div class="form-grid">
+          <div class="field full">
+            <label>源目录 A</label>
+            <div class="input-row">
+              <input type="text" id="mergeSrcA" placeholder="选择第一个源目录...">
+              <button class="btn btn-sm" onclick="browseMergeSrc('A')">浏览</button>
+            </div>
+          </div>
+          <div class="field full">
+            <label>源目录 B</label>
+            <div class="input-row">
+              <input type="text" id="mergeSrcB" placeholder="选择第二个源目录...">
+              <button class="btn btn-sm" onclick="browseMergeSrc('B')">浏览</button>
+            </div>
+          </div>
+          <div class="field full">
+            <label>输出目录</label>
+            <div class="input-row">
+              <input type="text" id="mergeOutput" placeholder="选择输出目录...">
+              <button class="btn btn-sm" onclick="browseMergeOutput()">浏览</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>模式</label>
+            <select id="mergeMode">
+              <option value="copy">复制（保留源文件）</option>
+              <option value="move">移动（删除源文件）</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>扩展名过滤（逗号分隔，留空=全部）</label>
+            <input type="text" id="mergeExt" placeholder=".mp4,.jpg,.webp">
+          </div>
+          <div class="field full">
+            <div class="checkbox-group">
+              <label><input type="checkbox" id="mergeRecurse" checked> 递归扫描子目录</label>
+              <label><input type="checkbox" id="mergeClean"> 清空输出目录</label>
+            </div>
+          </div>
+        </div>
+        <hr class="card-divider">
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-primary" id="btnMerge" onclick="startMerge()">开始合并查重</button>
+          <span id="mergeStatus" style="font-size:12px;color:var(--text-muted)"></span>
+        </div>
+        <div style="margin-top:10px">
+          <div class="stats-row" id="mergeStatsRow" style="display:none">
+            <span class="stat">扫描 <span class="val" id="msScanned">0</span></span>
+            <span class="stat">保留 <span class="val ok" id="msSaved">0</span></span>
+            <span class="stat">跳过重复 <span class="val skip" id="msSkipped">0</span></span>
+            <span class="stat">改名 <span class="val" id="msRenamed">0</span></span>
+          </div>
+          <div style="margin-top:8px;height:6px;background:var(--input-bg);border-radius:3px;overflow:hidden;display:none" id="mergeProgressBar">
+            <div id="mergeProgressFill" style="height:100%;background:var(--accent);width:0%;transition:width .3s"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Settings -->
+    <div class="page" id="page-settings">
+      <div class="card">
+        <div class="card-header"><h3>下载设置</h3><button class="btn btn-primary btn-sm" onclick="saveSettings()">保存</button></div>
+        <div class="form-grid">
+          <div class="field full">
+            <label>下载路径</label>
+            <div class="input-row">
+              <input type="text" id="cfgPath" placeholder="选择下载目录...">
+              <button class="btn btn-sm" onclick="browsePath()">浏览</button>
+            </div>
+          </div>
+          <div class="field">
+            <label>下载模式</label>
+            <select id="cfgMode">
+              <option value="like">喜欢的视频</option>
+              <option value="post">作品视频</option>
+              <option value="collect">收藏夹视频</option>
+              <option value="collectmix">收藏合集</option>
+              <option value="mix">合集</option>
+              <option value="music">音乐</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>并发数</label>
+            <input type="number" id="cfgThread" value="2" min="1" max="10">
+          </div>
+          <div class="field">
+            <label>请求速率 (次/秒)</label>
+            <input type="number" id="cfgRate" value="0.5" min="0.2" max="5" step="0.1">
+          </div>
+          <div class="field full">
+            <div class="checkbox-group">
+              <label><input type="checkbox" id="cbCover" checked> 下载封面</label>
+              <label><input type="checkbox" id="cbJson" checked> 元数据</label>
+              <label><input type="checkbox" id="cbFolder" checked> 按作者分文件夹</label>
+              <label><input type="checkbox" id="cbMusic"> 下载音乐</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: Sync -->
+    <div class="page" id="page-sync">
+      <div class="card">
+        <div class="card-header"><h3>仓库状态</h3><button class="btn btn-sm" onclick="fetchGitStatus()">刷新</button></div>
+        <div class="form-grid col2">
+          <div class="field"><label>分支</label><input type="text" id="gitBranch" value="-" readonly></div>
+          <div class="field"><label>本地状态</label><input type="text" id="gitDirty" value="-" readonly></div>
+          <div class="field"><label>领先 / 落后</label><input type="text" id="gitAheadBehind" value="-" readonly></div>
+          <div class="field"><label>上次同步</label><input type="text" id="gitLastSync" value="-" readonly></div>
+          <div class="field full"><label>最新提交</label><input type="text" id="gitLastCommit" value="-" readonly></div>
+          <div class="field full"><label>远端</label><input type="text" id="gitRemoteUrl" value="-" readonly></div>
+        </div>
+        <hr class="card-divider">
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="btnGitFetchOnly" onclick="runGitSync(true)">仅 fetch</button>
+          <button class="btn btn-primary" id="btnGitSync" onclick="runGitSync(false)">同步更新</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Log Tab -->
+    <div class="log-tab" id="logTab" onclick="toggleLog()">
+      <span class="badge" id="logBadge"></span>
+      日志
+    </div>
+
+    <!-- Log Drawer -->
+    <div class="log-drawer" id="logDrawer">
+      <div class="log-drawer-header">
+        <h3>运行日志</h3>
+        <div class="log-drawer-actions">
+          <button class="btn btn-sm" onclick="clearLogs()">清空</button>
+          <button class="btn btn-sm" onclick="toggleLog()">收起 ▸</button>
+        </div>
+      </div>
+      <div class="log-viewer" id="logViewer">
+        <div class="log-placeholder" id="logPlaceholder">等待操作...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Failed Items Modal -->
+<div class="modal-overlay" id="failedModal" onclick="if(event.target===this)closeFailedModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>历史失败项</h3>
+      <button class="modal-close" onclick="closeFailedModal()">&times;</button>
+    </div>
+    <div class="modal-toolbar">
+      <span class="count" id="fiCount"></span>
+      <button class="btn btn-sm" onclick="fiIgnoreAll()">全部忽略</button>
+      <button class="btn btn-sm" onclick="fiUnignoreAll()">取消忽略</button>
+      <button class="btn btn-sm btn-danger" onclick="fiClearAll()">清空</button>
+    </div>
+    <div class="modal-body" id="fiList"></div>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+let currentStatus='idle',sseSource=null,autoScroll=!0,logOpen=!1,currentPage='download',cookieValid=!1;
+
+// ── Navigation ──
+function switchPage(name){
+  currentPage=name;
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.toggle('active',el.dataset.page===name));
+  document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id==='page-'+name));
+}
+
+// ── Log Drawer ──
+function toggleLog(){
+  logOpen=!logOpen;
+  $('#logDrawer').classList.toggle('open',logOpen);
+  $('#logTab').classList.toggle('open',logOpen);
+  $('#mainArea').classList.toggle('log-open',logOpen);
+  if(logOpen)$('#logBadge').classList.remove('active');
+}
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded',()=>{
+  loadConfig();checkCookie();checkStatus();connectSSE();updateFailedBtnBadge();checkMonitorStatus();fetchGitStatus();loadMergeConfig();
+  $('#logViewer').addEventListener('scroll',()=>{autoScroll=$('#logViewer').scrollTop+$('#logViewer').clientHeight>=$('#logViewer').scrollHeight-30;});
+});
+
+// ── API ──
+async function api(url,opts={}){
+  const r=await fetch(url,{headers:{'Content-Type':'application/json'},...opts});
+  return r.json();
+}
+
+// ── Config ──
+async function loadConfig(){
+  try{
+    const c=await api('/api/config');
+    if(c.path)$('#cfgPath').value=c.path;
+    if(c.thread)$('#cfgThread').value=c.thread;
+    if(c.rate_limit)$('#cfgRate').value=c.rate_limit;
+    if(c.mode&&c.mode.length)$('#cfgMode').value=c.mode[0];
+    $('#cbCover').checked=c.cover!==!1;$('#cbJson').checked=c.json!==!1;
+    $('#cbFolder').checked=c.folderstyle!==!1;$('#cbMusic').checked=!!c.music;
+    if(c.monitor&&c.monitor.interval)$('#monitorInterval').value=c.monitor.interval;
+  }catch(e){}
+}
+
+async function saveSettings(){
+  const m=$('#cfgMode').value;
+  const d={path:$('#cfgPath').value,thread:parseInt($('#cfgThread').value)||2,
+    rate_limit:parseFloat($('#cfgRate').value)||.5,mode:[m],
+    cover:$('#cbCover').checked,json:$('#cbJson').checked,
+    folderstyle:$('#cbFolder').checked,music:$('#cbMusic').checked,
+    number:{[m]:0},monitor_interval:parseInt($('#monitorInterval').value)||60};
+  await api('/api/config',{method:'POST',body:JSON.stringify(d)});
+  showToast('设置已保存','success');
+}
+
+async function browsePath(){
+  if(window.qtBridge&&typeof window.qtBridge.selectFolder==='function'){
+    try{const p=await Promise.resolve(window.qtBridge.selectFolder());if(p)$('#cfgPath').value=p;}
+    catch(e){const r=await api('/api/download-dir/browse',{method:'POST'});if(r.path)$('#cfgPath').value=r.path;}
+  }else{const r=await api('/api/download-dir/browse',{method:'POST'});if(r.path)$('#cfgPath').value=r.path;}
+}
+
+// ── Cookie ──
+async function checkCookie(){
+  try{const r=await api('/api/cookie/status');updateCookieUI(r.valid);}
+  catch(e){updateCookieUI(!1);}
+}
+function updateCookieUI(v){
+  cookieValid=!!v;
+  $('#cookieText').textContent=v?'Cookie 有效':'Cookie 未配置';
+  $('#cookieText').style.color=v?'var(--success)':'var(--error)';
+}
+let cf=!1;
+async function fetchCookie(){
+  if(cf)return;cf=!0;$('#btnFetch').disabled=!0;$('#btnFetch').textContent='启动中...';
+  const r=await api('/api/cookie/fetch',{method:'POST'});
+  if(r.error){addErrorLog(r.error);showToast(r.error,'error');$('#btnFetch').disabled=!1;$('#btnFetch').textContent='获取 Cookie';cf=!1;return;}
+  $('#btnFetch').style.display='none';$('#btnConfirm').style.display='';$('#cookieGuide').style.display='';cf=!1;
+}
+let cs=!1;
+async function confirmCookie(){
+  if(cs)return;cs=!0;$('#btnConfirm').disabled=!0;$('#btnConfirm').textContent='提取中...';
+  await api('/api/cookie/confirm',{method:'POST'});
+  setTimeout(()=>{$('#btnConfirm').style.display='none';$('#btnFetch').style.display='';$('#cookieGuide').style.display='none';cs=!1;},2000);
+}
+
+// ── Download ──
+async function toggleDownload(){
+  const b=$('#btnDownload');if(b.disabled)return;
+  if(currentStatus==='downloading'){b.disabled=!0;await api('/api/download/stop',{method:'POST'});setTimeout(()=>b.disabled=!1,1e3);}
+  else{
+    if(!cookieValid){showToast('请先点击「获取 Cookie」完成登录后再下载','error');return;}
+    const p=$('#cfgPath').value.trim();if(!p){showToast('请先在「设置」中配置下载路径','error');return;}
+    await saveSettings();b.disabled=!0;const r=await api('/api/download/start',{method:'POST'});if(r.error){addErrorLog(r.error);showToast(r.error,'error');}b.disabled=!1;}
+}
+async function openDir(){await api('/api/download-dir/open',{method:'POST'});}
+
+// ── Status ──
+async function checkStatus(){
+  try{const r=await api('/api/status');setStatus(r.status);updateStats(r.stats);}catch(e){}
+}
+function setStatus(s){
+  currentStatus=s;
+  const b=$('#statusBadge'),t=$('#statusText'),d=$('#btnDownload'),dt=$('#btnDownloadText');
+  const labels={idle:'就绪',fetching_cookie:'获取 Cookie 中...',downloading:'下载中...'};
+  b.className='status-badge '+s;t.textContent=labels[s]||s;
+  if(s==='downloading'){d.classList.add('running');dt.textContent='停止下载';if(!logOpen)toggleLog();}
+  else{d.classList.remove('running');dt.textContent='开始下载';d.disabled=s!=='idle';}
+  $('#btnFetch').disabled=s!=='idle';
+}
+function updateStats(s){if(!s)return;$('#sbCompleted').textContent=s.completed||0;$('#sbSkipped').textContent=s.skipped||0;$('#sbFailed').textContent=s.failed||0;}
+
+// ── SSE ──
+let srt=null;
+function connectSSE(){
+  if(sseSource){sseSource.close();sseSource=null;}if(srt){clearTimeout(srt);srt=null;}
+  sseSource=new EventSource('/api/events');
+  sseSource.addEventListener('log',e=>{const d=JSON.parse(e.data);appendLog(d.time,d.text);});
+  sseSource.addEventListener('status',e=>{setStatus(JSON.parse(e.data).status);});
+  sseSource.addEventListener('stats',e=>{updateStats(JSON.parse(e.data));});
+  sseSource.addEventListener('cookie',e=>{const d=JSON.parse(e.data);updateCookieUI(d.valid);if(d.valid)showToast('Cookie 获取成功','success');});
+  sseSource.addEventListener('monitor',e=>{updateMonitorUI(JSON.parse(e.data));});
+  sseSource.addEventListener('done',e=>{const d=JSON.parse(e.data);let m='下载完成！新下载 '+d.completed+' 个';if(d.skipped)m+='，跳过 '+d.skipped;if(d.failed)m+='，失败 '+d.failed;showToast(m,d.failed?'error':'success');updateFailedBtnBadge();});
+  sseSource.addEventListener('git',e=>{const d=JSON.parse(e.data);appendLog(new Date().toLocaleTimeString('zh-CN',{hour12:!1}),'[git] '+d.msg);});
+  sseSource.addEventListener('git_status',e=>{try{applyGitStatus(JSON.parse(e.data));}catch(_){}});
+  sseSource.addEventListener('merge_log',e=>{const d=JSON.parse(e.data);appendLog(new Date().toLocaleTimeString('zh-CN',{hour12:!1}),'[合并] '+d.msg);});
+  sseSource.addEventListener('merge_progress',e=>{const d=JSON.parse(e.data);const pct=d.total?Math.round(d.current/d.total*100):0;$('#mergeProgressFill').style.width=pct+'%';$('#mergeStatus').textContent=d.current+'/'+d.total+' ('+pct+'%)';});
+  sseSource.addEventListener('merge_done',e=>{const d=JSON.parse(e.data);if(d.total_scanned!==undefined){$('#msScanned').textContent=d.total_scanned;$('#msSaved').textContent=d.unique_saved;$('#msSkipped').textContent=d.duplicates_skipped;$('#msRenamed').textContent=d.renamed_on_conflict;}mergeRunning=!1;$('#btnMerge').disabled=!1;$('#btnMerge').textContent='开始合并查重';['mergeSrcA','mergeSrcB','mergeOutput','mergeMode','mergeExt','mergeRecurse','mergeClean'].forEach(id=>$('#'+id).disabled=!1);$('#mergeStatus').textContent='完成';showToast('合并查重完成！保留 '+d.unique_saved+' 个文件','success');});
+  sseSource.onerror=()=>{if(sseSource){sseSource.close();sseSource=null;}if(!srt)srt=setTimeout(connectSSE,3000);};
+}
+
+// ── Log ──
+function appendLog(ts,text){
+  const lv=$('#logViewer'),ph=$('#logPlaceholder');if(ph)ph.remove();
+  const d=document.createElement('div');
+  d.className='log-line '+classifyLog(text);
+  d.innerHTML='<span class="ts">'+ts+'</span>'+escHtml(text);
+  lv.appendChild(d);
+  if(lv.children.length>500)lv.removeChild(lv.firstChild);
+  if(autoScroll)lv.scrollTop=lv.scrollHeight;
+  if(!logOpen)$('#logBadge').classList.add('active');
+}
+function addErrorLog(t){appendLog(new Date().toTimeString().slice(0,8),'[ERROR] '+t);}
+function classifyLog(t){const l=t.toLowerCase();if(l.includes('error')||l.includes('失败')||l.includes('出错'))return'error';if(l.includes('下载完成')||l.includes('downloaded')||l.includes('saved')||l.includes('成功'))return'success';if(l.includes('warning')||l.includes('警告')||l.includes('跳过'))return'warning';if(l.includes('正在')||l.includes('starting')||l.includes('开始')||l.includes('结束'))return'system';return'';}
+function clearLogs(){$('#logViewer').innerHTML='<div class="log-placeholder" id="logPlaceholder">等待操作...</div>';}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// ── Monitor ──
+let ma=!1,mt=null;
+async function toggleMonitor(){
+  const b=$('#btnMonitor');b.disabled=!0;
+  if(ma){await api('/api/monitor/stop',{method:'POST'});}
+  else{const i=parseInt($('#monitorInterval').value)||60;await api('/api/config',{method:'POST',body:JSON.stringify({monitor_interval:i})});const r=await api('/api/monitor/start',{method:'POST'});if(r.error)showToast(r.error,'error');}
+  b.disabled=!1;await checkMonitorStatus();
+}
+async function checkMonitorStatus(){try{const r=await api('/api/monitor/status');updateMonitorUI(r);}catch(e){}}
+function updateMonitorUI(info){
+  ma=info.active;$('#monitorDot').className='monitor-dot'+(info.active?' active':'');
+  $('#monitorInterval').disabled=info.active;
+  const b=$('#btnMonitor');
+  if(info.active){b.textContent='停止';b.className='btn btn-sm btn-danger';startCountdown(info.next_check,info.session_count);}
+  else{b.textContent='开启';b.className='btn btn-sm';$('#monitorText').textContent='监听未启动';stopCountdown();}
+}
+function startCountdown(nc,sc){stopCountdown();const u=()=>{if(!nc)return;const r=Math.max(0,Math.floor(nc-Date.now()/1e3));if(!r){$('#monitorText').textContent='监听中 · 检查中...';return;}const h=Math.floor(r/3600),m=Math.floor((r%3600)/60),s=r%60;let c=h?h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'):String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');$('#monitorText').textContent='监听中 · 下次 '+c+(sc?' · '+sc+' 轮':'');};u();mt=setInterval(u,1e3);}
+function stopCountdown(){if(mt){clearInterval(mt);mt=null;}}
+
+// ── Failed Items ──
+let _fi=[];
+async function openFailedModal(){$('#failedModal').classList.add('open');await refreshFailedItems();}
+function closeFailedModal(){$('#failedModal').classList.remove('open');}
+async function refreshFailedItems(){try{const r=await api('/api/failed-items');_fi=r.items||[];}catch(e){_fi=[];}renderFailedItems();}
+function renderFailedItems(){
+  const l=$('#fiList'),fc=_fi.filter(i=>i.status==='failed').length,ic=_fi.filter(i=>i.status==='ignored').length;
+  $('#fiCount').textContent='共 '+_fi.length+' 条（待重试 '+fc+'，已忽略 '+ic+'）';
+  if(!_fi.length){l.innerHTML='<div class="fi-empty">暂无失败记录</div>';return;}
+  l.innerHTML=_fi.map(i=>{
+    const ts=i.failed_at?new Date(i.failed_at*1e3).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}):'';
+    const ig=i.status==='ignored';
+    return'<div class="fi-item"><div class="fi-info"><div class="fi-title" title="'+escHtml(i.title||'')+'">'+escHtml(i.title||i.aweme_id)+'</div><div class="fi-reason">'+escHtml(i.error_reason||'未知')+'</div><div class="fi-meta"><span>'+i.aweme_id+'</span>'+(i.author_name?'<span>'+escHtml(i.author_name)+'</span>':'')+(i.mode?'<span>'+i.mode+'</span>':'')+(ts?'<span>'+ts+'</span>':'')+'</div></div><span class="fi-tag '+(ig?'ignored':'failed')+'">'+(ig?'已忽略':'待重试')+'</span><div class="fi-actions"><button class="btn btn-sm" onclick="fi'+(ig?'Unignore':'Ignore')+'(\''+i.aweme_id+'\')">'+(ig?'取消忽略':'忽略')+'</button><button class="btn btn-sm btn-danger" onclick="fiDelete(\''+i.aweme_id+'\')">删除</button></div></div>';
+  }).join('');
+}
+async function fiIgnore(id){await api('/api/failed-items/'+id+'/ignore',{method:'POST'});await refreshFailedItems();}
+async function fiUnignore(id){await api('/api/failed-items/'+id+'/unignore',{method:'POST'});await refreshFailedItems();}
+async function fiDelete(id){if(!confirm('确认删除该失败记录？此操作不可撤销。'))return;await api('/api/failed-items/'+id,{method:'DELETE'});await refreshFailedItems();}
+async function fiIgnoreAll(){await api('/api/failed-items/ignore-all',{method:'POST'});await refreshFailedItems();}
+async function fiUnignoreAll(){await api('/api/failed-items/unignore-all',{method:'POST'});await refreshFailedItems();}
+async function fiClearAll(){if(!confirm('确认清空所有失败记录？'))return;await api('/api/failed-items/clear',{method:'POST'});await refreshFailedItems();}
+async function updateFailedBtnBadge(){try{const r=await api('/api/failed-items');const c=(r.items||[]).filter(i=>i.status==='failed').length;$('#btnFailed').textContent=c?'失败项 ('+c+')':'失败项';$('#btnFailed').className=c?'btn btn-danger':'btn';}catch(e){}}
+
+// ── Toast ──
+function showToast(msg,type='info'){
+  const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.opacity='0';t.style.transition='opacity .3s';},3500);
+  setTimeout(()=>t.remove(),4000);
+}
+
+// ── Git Sync ──
+function applyGitStatus(s){
+  if(!s)return;
+  $('#gitBranch').value=s.branch||'-';
+  $('#gitDirty').value=s.dirty?'有改动（'+s.dirty_files+' 个文件）':'干净';
+  $('#gitAheadBehind').value='ahead '+(s.ahead||0)+' / behind '+(s.behind||0);
+  $('#gitLastSync').value=s.last_sync||'（从未同步）';
+  $('#gitLastCommit').value=s.last_commit||'-';
+  $('#gitRemoteUrl').value=s.remote_url||'-';
+}
+async function fetchGitStatus(){try{applyGitStatus(await api('/api/git/status'));}catch(e){}}
+async function runGitSync(fo){
+  const dirtyTxt=$('#gitDirty').value||'';
+  if(!fo && dirtyTxt.indexOf('有改动')>=0 && !confirm('本地存在未提交改动，同步更新可能导致冲突或被覆盖，确认继续？'))return;
+  const bs=$('#btnGitSync'),bf=$('#btnGitFetchOnly');bs.disabled=!0;bf.disabled=!0;
+  if(!logOpen)toggleLog();
+  try{const r=await api('/api/git/sync',{method:'POST',body:JSON.stringify({fetch_only:!!fo})});if(!r.started)showToast('同步已在运行中','info');else showToast(fo?'已启动 fetch':'已启动同步','info');}
+  catch(e){showToast('启动失败: '+e,'error');}
+  setTimeout(()=>{bs.disabled=!1;bf.disabled=!1;},2000);
+}
+
+// ── File Merge ──
+let mergeRunning=!1;
+
+async function loadMergeConfig(){
+  try{
+    const c=await api('/api/merge/config');
+    if(c.sourceA)$('#mergeSrcA').value=c.sourceA;
+    if(c.sourceB)$('#mergeSrcB').value=c.sourceB;
+    if(c.output)$('#mergeOutput').value=c.output;
+    if(c.mode)$('#mergeMode').value=c.mode;
+    if(c.extensions!==undefined)$('#mergeExt').value=c.extensions;
+    $('#mergeRecurse').checked=c.recurse!==!1;
+    $('#mergeClean').checked=!!c.clean_output;
+  }catch(e){}
+}
+
+async function browseMergeSrc(tag){
+  if(window.qtBridge&&typeof window.qtBridge.selectFolder==='function'){
+    try{const p=await Promise.resolve(window.qtBridge.selectFolder());if(p)$('#mergeSrc'+tag).value=p;}
+    catch(e){const r=await api('/api/download-dir/browse',{method:'POST'});if(r.path)$('#mergeSrc'+tag).value=r.path;}
+  }else{const r=await api('/api/download-dir/browse',{method:'POST'});if(r.path)$('#mergeSrc'+tag).value=r.path;}
+}
+async function browseMergeOutput(){
+  if(window.qtBridge&&typeof window.qtBridge.selectFolder==='function'){
+    try{const p=await Promise.resolve(window.qtBridge.selectFolder());if(p)$('#mergeOutput').value=p;}
+    catch(e){const r=await api('/api/download-dir/browse',{method:'POST'});if(r.path)$('#mergeOutput').value=r.path;}
+  }else{const r=await api('/api/download-dir/browse',{method:'POST'});if(r.path)$('#mergeOutput').value=r.path;}
+}
+
+async function startMerge(){
+  if(mergeRunning)return;
+  const srcA=$('#mergeSrcA').value.trim(),srcB=$('#mergeSrcB').value.trim(),output=$('#mergeOutput').value.trim();
+  if(!srcA||!srcB||!output){showToast('请填写所有路径','error');return;}
+  if(srcA===srcB){showToast('源目录 A 与 B 不能相同','error');return;}
+  if($('#mergeClean').checked && !confirm('已勾选「清空输出目录」，将删除输出目录中的现有文件，确认继续？'))return;
+  // 保存配置
+  await api('/api/merge/config',{method:'POST',body:JSON.stringify({
+    sourceA:srcA,sourceB:srcB,output:output,
+    mode:$('#mergeMode').value,extensions:$('#mergeExt').value.trim(),
+    recurse:$('#mergeRecurse').checked,clean_output:$('#mergeClean').checked
+  })});
+  mergeRunning=!0;$('#btnMerge').disabled=!0;$('#btnMerge').textContent='处理中...';
+  ['mergeSrcA','mergeSrcB','mergeOutput','mergeMode','mergeExt','mergeRecurse','mergeClean'].forEach(id=>$('#'+id).disabled=!0);
+  $('#mergeStatsRow').style.display='flex';$('#mergeProgressBar').style.display='block';$('#mergeProgressFill').style.width='0%';
+  if(!logOpen)toggleLog();
+  const extRaw=$('#mergeExt').value.trim();
+  const exts=extRaw?extRaw.split(',').map(e=>e.trim()).filter(Boolean):null;
+  const r=await api('/api/merge/start',{method:'POST',body:JSON.stringify({
+    sources:[srcA,srcB],output:output,mode:$('#mergeMode').value,
+    extensions:exts,recurse:$('#mergeRecurse').checked,clean_output:$('#mergeClean').checked
+  })});
+  if(!r.started){showToast(r.error||'启动失败','error');mergeRunning=!1;$('#btnMerge').disabled=!1;$('#btnMerge').textContent='开始合并查重';}
+}
+
+// SSE handlers for merge events (added to existing SSE connect)
+// merge_log, merge_progress, merge_done are handled by the universal SSE listener below
+</script>
+</body>
+</html>

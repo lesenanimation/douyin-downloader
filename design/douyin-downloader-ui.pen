@@ -1,0 +1,2035 @@
+{
+  "version": "2.14",
+  "children": [
+    {
+      "type": "frame",
+      "id": "app-shell",
+      "x": 0,
+      "y": 0,
+      "name": "App Shell",
+      "clip": true,
+      "width": 1200,
+      "height": 800,
+      "fill": "$color/bg",
+      "children": [
+        {
+          "type": "frame",
+          "id": "sidebar",
+          "name": "Sidebar",
+          "width": 240,
+          "height": 800,
+          "fill": "$color/surface",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "frame",
+              "id": "sidebar-logo",
+              "name": "Logo",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "logo-icon",
+                  "name": "Logo Icon",
+                  "width": 28,
+                  "height": 28,
+                  "icon": "download",
+                  "library": "lucide",
+                  "fill": "$color/accent"
+                },
+                {
+                  "type": "text",
+                  "id": "logo-text",
+                  "name": "Logo Text",
+                  "fill": "$color/text",
+                  "content": "抖音下载器",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "nav-section",
+              "name": "Navigation",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "nav-label",
+                  "name": "NAV LABEL",
+                  "fill": "$color/text-muted",
+                  "content": "导航",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "nav-download",
+                  "name": "Nav - Download",
+                  "fill": "$color/accent",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "nav-download-icon",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "arrow-down-to-line",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nav-download-text",
+                      "fill": "#FFFFFF",
+                      "content": "下载",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "nav-merge",
+                  "name": "Nav - Merge",
+                  "fill": "transparent",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "nav-merge-icon",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "git-merge",
+                      "library": "lucide",
+                      "fill": "$color/text-muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nav-merge-text",
+                      "fill": "$color/text-muted",
+                      "content": "文件合并",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "nav-settings",
+                  "name": "Nav - Settings",
+                  "fill": "transparent",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "nav-settings-icon",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "settings",
+                      "library": "lucide",
+                      "fill": "$color/text-muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nav-settings-text",
+                      "fill": "$color/text-muted",
+                      "content": "设置",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "nav-sync",
+                  "name": "Nav - Sync",
+                  "fill": "transparent",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "nav-sync-icon",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "refresh-cw",
+                      "library": "lucide",
+                      "fill": "$color/text-muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nav-sync-text",
+                      "fill": "$color/text-muted",
+                      "content": "仓库同步",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "sidebar-spacer",
+              "width": 216,
+              "height": 100,
+              "layout": "vertical"
+            },
+            {
+              "type": "frame",
+              "id": "sidebar-status",
+              "name": "Status",
+              "fill": "$color/input-bg",
+              "cornerRadius": 8,
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "status-dot",
+                  "width": 8,
+                  "height": 8,
+                  "fill": "$color/success",
+                  "cornerRadius": 4
+                },
+                {
+                  "type": "text",
+                  "id": "status-text",
+                  "fill": "$color/text-muted",
+                  "content": "服务运行中",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "main-content",
+          "name": "Main Content",
+          "width": 960,
+          "height": 800,
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "page-header",
+              "name": "Page Header",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "page-title",
+                  "fill": "$color/text",
+                  "content": "下载",
+                  "fontFamily": "Inter",
+                  "fontSize": 22,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "page-content",
+              "name": "Page Content",
+              "layout": "vertical",
+              "gap": 20,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "card-download",
+                  "name": "Download Card",
+                  "fill": "$color/surface",
+                  "cornerRadius": 12,
+                  "stroke": "$color/border",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "card-download-title",
+                      "fill": "$color/text",
+                      "content": "新建下载任务",
+                      "fontFamily": "Inter",
+                      "fontSize": 15,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "row-url",
+                      "name": "URL Input Row",
+                      "gap": 10,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "input-url-wrapper",
+                          "name": "URL Input",
+                          "width": 520,
+                          "height": 40,
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 8,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "gap": 8,
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "input-url-icon",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "link",
+                              "library": "lucide",
+                              "fill": "$color/text-muted"
+                            },
+                            {
+                              "type": "text",
+                              "id": "input-url-placeholder",
+                              "fill": "$color/text-muted",
+                              "content": "粘贴抖音链接...",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "btn-paste",
+                          "name": "Paste Button",
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 8,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "btn-paste-icon",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "clipboard-paste",
+                              "library": "lucide",
+                              "fill": "$color/text-muted"
+                            },
+                            {
+                              "type": "text",
+                              "id": "btn-paste-text",
+                              "fill": "$color/text-muted",
+                              "content": "粘贴",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "btn-start",
+                          "name": "Start Button",
+                          "fill": "$color/accent",
+                          "cornerRadius": 8,
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "btn-start-icon",
+                              "width": 14,
+                              "height": 14,
+                              "icon": "play",
+                              "library": "lucide",
+                              "fill": "#FFFFFF"
+                            },
+                            {
+                              "type": "text",
+                              "id": "btn-start-text",
+                              "fill": "#FFFFFF",
+                              "content": "开始下载",
+                              "fontFamily": "Inter",
+                              "fontSize": 13,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "row-options",
+                      "name": "Options Row",
+                      "gap": 16,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "field-mode",
+                          "name": "Mode Field",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "label-mode",
+                              "fill": "$color/text-muted",
+                              "content": "下载模式",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "select-mode",
+                              "name": "Mode Select",
+                              "width": 150,
+                              "fill": "$color/input-bg",
+                              "cornerRadius": 6,
+                              "stroke": "$color/border",
+                              "strokeWidth": 1,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "select-mode-text",
+                                  "fill": "$color/text",
+                                  "content": "用户主页",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "field-concurrency",
+                          "name": "Concurrency Field",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "label-concurrency",
+                              "fill": "$color/text-muted",
+                              "content": "并发数",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "input-concurrency",
+                              "name": "Concurrency Input",
+                              "width": 60,
+                              "fill": "$color/input-bg",
+                              "cornerRadius": 6,
+                              "stroke": "$color/border",
+                              "strokeWidth": 1,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "input-concurrency-text",
+                                  "fill": "$color/text",
+                                  "content": "5",
+                                  "fontFamily": "Inter",
+                                  "fontSize": 12,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "field-path",
+                          "name": "Path Field",
+                          "layout": "vertical",
+                          "gap": 6,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "label-path",
+                              "fill": "$color/text-muted",
+                              "content": "下载目录",
+                              "fontFamily": "Inter",
+                              "fontSize": 11,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "input-path-row",
+                              "gap": 6,
+                              "children": [
+                                {
+                                  "type": "frame",
+                                  "id": "input-path",
+                                  "width": 200,
+                                  "fill": "$color/input-bg",
+                                  "cornerRadius": 6,
+                                  "stroke": "$color/border",
+                                  "strokeWidth": 1,
+                                  "children": [
+                                    {
+                                      "type": "text",
+                                      "id": "input-path-text",
+                                      "fill": "$color/text",
+                                      "content": "X:\\抖音收藏下载",
+                                      "fontFamily": "Inter",
+                                      "fontSize": 11,
+                                      "fontWeight": "normal"
+                                    }
+                                  ]
+                                },
+                                {
+                                  "type": "frame",
+                                  "id": "btn-browse",
+                                  "fill": "$color/input-bg",
+                                  "cornerRadius": 6,
+                                  "stroke": "$color/border",
+                                  "strokeWidth": 1,
+                                  "children": [
+                                    {
+                                      "type": "icon",
+                                      "id": "btn-browse-icon",
+                                      "width": 14,
+                                      "height": 14,
+                                      "icon": "folder-open",
+                                      "library": "lucide",
+                                      "fill": "$color/text-muted"
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "card-progress",
+                  "name": "Progress Card",
+                  "fill": "$color/surface",
+                  "cornerRadius": 12,
+                  "stroke": "$color/border",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "gap": 12,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "progress-header",
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "progress-title",
+                          "fill": "$color/text",
+                          "content": "下载进度",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "progress-bar-bg",
+                      "width": 848,
+                      "height": 6,
+                      "fill": "$color/input-bg",
+                      "cornerRadius": 3,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "progress-bar-fill",
+                          "width": 296,
+                          "height": 6,
+                          "fill": "$color/accent",
+                          "cornerRadius": 3
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "progress-stats",
+                      "gap": 24,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "stat-downloaded",
+                          "fill": "$color/text-muted",
+                          "content": "已下载 12/45  ·  35%",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "stat-speed",
+                          "fill": "$color/text-muted",
+                          "content": "速度 3.2 MB/s",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "card-log",
+                  "name": "Log Card",
+                  "fill": "$color/surface",
+                  "cornerRadius": 12,
+                  "stroke": "$color/border",
+                  "strokeWidth": 1,
+                  "layout": "vertical",
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "log-header",
+                      "stroke": "$color/border",
+                      "strokeWidth": {
+                        "bottom": 1
+                      },
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "log-title",
+                          "fill": "$color/text",
+                          "content": "日志",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "log-body",
+                      "height": 160,
+                      "layout": "vertical",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "log-line-1",
+                          "fill": "$color/text-muted",
+                          "content": "14:32:01  [INFO] 开始解析用户主页链接...",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "log-line-2",
+                          "fill": "$color/text-muted",
+                          "content": "14:32:02  [INFO] 获取到 45 个作品",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "log-line-3",
+                          "fill": "$color/success",
+                          "content": "14:32:03  [DOWNLOAD] 正在下载: 作品_001.mp4",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "log-line-4",
+                          "fill": "$color/success",
+                          "content": "14:32:05  [DOWNLOAD] 正在下载: 作品_002.mp4",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "log-line-5",
+                          "fill": "$color/warning",
+                          "content": "14:32:06  [WARN] 作品_003 被限流，等待重试...",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "log-line-6",
+                          "fill": "$color/success",
+                          "content": "14:32:08  [DOWNLOAD] 正在下载: 作品_004.mp4",
+                          "fontFamily": "JetBrains Mono",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "app-shell-merge",
+      "x": 1300,
+      "y": 0,
+      "name": "App Shell - Merge Page",
+      "clip": true,
+      "width": 1200,
+      "height": 800,
+      "fill": "$color/bg",
+      "children": [
+        {
+          "type": "frame",
+          "id": "sidebar-ref-merge",
+          "name": "Sidebar",
+          "width": 240,
+          "height": 800,
+          "fill": "$color/surface",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "frame",
+              "id": "wy46M",
+              "name": "Logo",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "B8xauh",
+                  "name": "Logo Icon",
+                  "width": 28,
+                  "height": 28,
+                  "icon": "download",
+                  "library": "lucide",
+                  "fill": "$color/accent"
+                },
+                {
+                  "type": "text",
+                  "id": "ZWMxN",
+                  "name": "Logo Text",
+                  "fill": "$color/text",
+                  "content": "抖音下载器",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "K78Kxr",
+              "name": "Navigation",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "GXIF9",
+                  "name": "NAV LABEL",
+                  "fill": "$color/text-muted",
+                  "content": "导航",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "pcWtZ",
+                  "name": "Nav - Download",
+                  "fill": "$color/accent",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "S3swxe",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "arrow-down-to-line",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    },
+                    {
+                      "type": "text",
+                      "id": "cRG7G",
+                      "fill": "#FFFFFF",
+                      "content": "下载",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "ZlxCD",
+                  "name": "Nav - Merge",
+                  "fill": "transparent",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "GCiFi",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "git-merge",
+                      "library": "lucide",
+                      "fill": "$color/text-muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "XDZj8",
+                      "fill": "$color/text-muted",
+                      "content": "文件合并",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "hhBlY",
+                  "name": "Nav - Settings",
+                  "fill": "transparent",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "iKCf7",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "settings",
+                      "library": "lucide",
+                      "fill": "$color/text-muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "nVMQ0",
+                      "fill": "$color/text-muted",
+                      "content": "设置",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "gYRaZ",
+                  "name": "Nav - Sync",
+                  "fill": "transparent",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "mrliF",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "refresh-cw",
+                      "library": "lucide",
+                      "fill": "$color/text-muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "lib2v",
+                      "fill": "$color/text-muted",
+                      "content": "仓库同步",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "Bya8U",
+              "width": 216,
+              "height": 100,
+              "layout": "vertical"
+            },
+            {
+              "type": "frame",
+              "id": "jOpbj",
+              "name": "Status",
+              "fill": "$color/input-bg",
+              "cornerRadius": 8,
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "QBj0M",
+                  "width": 8,
+                  "height": 8,
+                  "fill": "$color/success",
+                  "cornerRadius": 4
+                },
+                {
+                  "type": "text",
+                  "id": "Y45GD",
+                  "fill": "$color/text-muted",
+                  "content": "服务运行中",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "main-content-merge",
+          "name": "Main Content - Merge",
+          "width": 960,
+          "height": 800,
+          "layout": "vertical",
+          "children": [
+            {
+              "type": "frame",
+              "id": "page-header-merge",
+              "name": "Page Header",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "page-title-merge",
+                  "fill": "$color/text",
+                  "content": "文件合并查重",
+                  "fontFamily": "Inter",
+                  "fontSize": 22,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "card-merge",
+              "name": "Merge Card",
+              "fill": "$color/surface",
+              "cornerRadius": 12,
+              "stroke": "$color/border",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 16,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "card-merge-title",
+                  "fill": "$color/text",
+                  "content": "合并查重设置",
+                  "fontFamily": "Inter",
+                  "fontSize": 15,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "merge-field-row-1",
+                  "name": "Source A Field",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "label-srca",
+                      "fill": "$color/text-muted",
+                      "content": "源目录 A",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "row-srca",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "input-srca",
+                          "width": 680,
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 8,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-srca-text",
+                              "fill": "$color/text",
+                              "content": "X:\\抖音收藏下载\\self",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "btn-srca-browse",
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 8,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "btn-srca-browse-icon",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "folder-open",
+                              "library": "lucide",
+                              "fill": "$color/text-muted"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "merge-field-row-2",
+                  "name": "Source B Field",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "label-srcb",
+                      "fill": "$color/text-muted",
+                      "content": "源目录 B",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "row-srcb",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "input-srcb",
+                          "width": 680,
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 8,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-srcb-text",
+                              "fill": "$color/text",
+                              "content": "X:\\抖音收藏下载\\self\\collect",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "btn-srcb-browse",
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 8,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "btn-srcb-browse-icon",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "folder-open",
+                              "library": "lucide",
+                              "fill": "$color/text-muted"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "merge-field-row-3",
+                  "name": "Output Field",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "label-output",
+                      "fill": "$color/text-muted",
+                      "content": "输出目录",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "row-output",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "input-output",
+                          "width": 680,
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 8,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-output-text",
+                              "fill": "$color/text",
+                              "content": "X:\\抖音收藏下载",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "btn-output-browse",
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 8,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "btn-output-browse-icon",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "folder-open",
+                              "library": "lucide",
+                              "fill": "$color/text-muted"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "merge-options-row",
+                  "gap": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "field-merge-mode",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "label-merge-mode",
+                          "fill": "$color/text-muted",
+                          "content": "模式",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "select-merge-mode",
+                          "width": 120,
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 6,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "select-merge-mode-text",
+                              "fill": "$color/text",
+                              "content": "复制",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "field-merge-ext",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "label-merge-ext",
+                          "fill": "$color/text-muted",
+                          "content": "扩展名过滤",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "input-merge-ext",
+                          "width": 180,
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 6,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-merge-ext-text",
+                              "fill": "$color/text",
+                              "content": ".mp4, .jpg, .webp",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "merge-checkboxes",
+                  "gap": 20,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "checkbox-recurse",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "checkbox-recurse-box",
+                          "width": 16,
+                          "height": 16,
+                          "fill": "$color/accent",
+                          "cornerRadius": 4,
+                          "stroke": "$color/accent",
+                          "strokeWidth": 2,
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "checkbox-recurse-check",
+                              "width": 12,
+                              "height": 12,
+                              "icon": "check",
+                              "library": "lucide",
+                              "fill": "#FFFFFF"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "text",
+                          "id": "checkbox-recurse-text",
+                          "fill": "$color/text",
+                          "content": "递归扫描子目录",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "checkbox-clean",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "checkbox-clean-box",
+                          "width": 16,
+                          "height": 16,
+                          "fill": "transparent",
+                          "cornerRadius": 4,
+                          "stroke": "$color/border",
+                          "strokeWidth": 2
+                        },
+                        {
+                          "type": "text",
+                          "id": "checkbox-clean-text",
+                          "fill": "$color/text",
+                          "content": "清空输出目录",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "divider-merge",
+                  "width": 896,
+                  "height": 1,
+                  "fill": "$color/border"
+                },
+                {
+                  "type": "frame",
+                  "id": "merge-action-row",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "btn-merge-start",
+                      "fill": "$color/accent",
+                      "cornerRadius": 8,
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "icon",
+                          "id": "btn-merge-start-icon",
+                          "width": 16,
+                          "height": 16,
+                          "icon": "git-merge",
+                          "library": "lucide",
+                          "fill": "#FFFFFF"
+                        },
+                        {
+                          "type": "text",
+                          "id": "btn-merge-start-text",
+                          "fill": "#FFFFFF",
+                          "content": "开始合并查重",
+                          "fontFamily": "Inter",
+                          "fontSize": 14,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "merge-stats-row",
+                  "gap": 24,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "merge-stat-scan",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "merge-stat-scan-label",
+                          "fill": "$color/text-muted",
+                          "content": "扫描",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "merge-stat-scan-value",
+                          "fill": "$color/text",
+                          "content": "1,247",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "merge-stat-saved",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "merge-stat-saved-label",
+                          "fill": "$color/text-muted",
+                          "content": "保留",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "merge-stat-saved-value",
+                          "fill": "$color/success",
+                          "content": "892",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "merge-stat-skip",
+                      "gap": 4,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "merge-stat-skip-label",
+                          "fill": "$color/text-muted",
+                          "content": "跳过重复",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "text",
+                          "id": "merge-stat-skip-value",
+                          "fill": "$color/warning",
+                          "content": "355",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "type": "frame",
+      "id": "app-shell-settings",
+      "x": 2600,
+      "y": 0,
+      "name": "App Shell - Settings Page",
+      "clip": true,
+      "width": 1200,
+      "height": 800,
+      "fill": "$color/bg",
+      "children": [
+        {
+          "type": "frame",
+          "id": "sidebar-ref-settings",
+          "name": "Sidebar",
+          "width": 240,
+          "height": 800,
+          "fill": "$color/surface",
+          "layout": "vertical",
+          "gap": 4,
+          "children": [
+            {
+              "type": "frame",
+              "id": "r6rEn",
+              "name": "Logo",
+              "gap": 10,
+              "children": [
+                {
+                  "type": "icon",
+                  "id": "v5Jw4",
+                  "name": "Logo Icon",
+                  "width": 28,
+                  "height": 28,
+                  "icon": "download",
+                  "library": "lucide",
+                  "fill": "$color/accent"
+                },
+                {
+                  "type": "text",
+                  "id": "u9BCL",
+                  "name": "Logo Text",
+                  "fill": "$color/text",
+                  "content": "抖音下载器",
+                  "fontFamily": "Inter",
+                  "fontSize": 16,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "X0Kwn",
+              "name": "Navigation",
+              "layout": "vertical",
+              "gap": 2,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "m8QfaY",
+                  "name": "NAV LABEL",
+                  "fill": "$color/text-muted",
+                  "content": "导航",
+                  "fontFamily": "Inter",
+                  "fontSize": 10,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "RIwmq",
+                  "name": "Nav - Download",
+                  "fill": "$color/accent",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "k46ck",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "arrow-down-to-line",
+                      "library": "lucide",
+                      "fill": "#FFFFFF"
+                    },
+                    {
+                      "type": "text",
+                      "id": "yYmBh",
+                      "fill": "#FFFFFF",
+                      "content": "下载",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "X6WwK",
+                  "name": "Nav - Merge",
+                  "fill": "transparent",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "O4An3",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "git-merge",
+                      "library": "lucide",
+                      "fill": "$color/text-muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "gwlYc",
+                      "fill": "$color/text-muted",
+                      "content": "文件合并",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "vmbOP",
+                  "name": "Nav - Settings",
+                  "fill": "transparent",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "R7YZiw",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "settings",
+                      "library": "lucide",
+                      "fill": "$color/text-muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "SO8rS",
+                      "fill": "$color/text-muted",
+                      "content": "设置",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "fM9Rj",
+                  "name": "Nav - Sync",
+                  "fill": "transparent",
+                  "cornerRadius": 8,
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "icon",
+                      "id": "LwCSe",
+                      "width": 18,
+                      "height": 18,
+                      "icon": "refresh-cw",
+                      "library": "lucide",
+                      "fill": "$color/text-muted"
+                    },
+                    {
+                      "type": "text",
+                      "id": "pDwUz",
+                      "fill": "$color/text-muted",
+                      "content": "仓库同步",
+                      "fontFamily": "Inter",
+                      "fontSize": 13,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "l4dtC",
+              "width": 216,
+              "height": 100,
+              "layout": "vertical"
+            },
+            {
+              "type": "frame",
+              "id": "nksgg",
+              "name": "Status",
+              "fill": "$color/input-bg",
+              "cornerRadius": 8,
+              "gap": 8,
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "E9vZk",
+                  "width": 8,
+                  "height": 8,
+                  "fill": "$color/success",
+                  "cornerRadius": 4
+                },
+                {
+                  "type": "text",
+                  "id": "nFj55",
+                  "fill": "$color/text-muted",
+                  "content": "服务运行中",
+                  "fontFamily": "Inter",
+                  "fontSize": 11,
+                  "fontWeight": "normal"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
+          "id": "main-content-settings",
+          "name": "Main Content - Settings",
+          "width": 960,
+          "height": 800,
+          "layout": "vertical",
+          "gap": 20,
+          "children": [
+            {
+              "type": "frame",
+              "id": "page-header-settings",
+              "children": [
+                {
+                  "type": "text",
+                  "id": "page-title-settings",
+                  "fill": "$color/text",
+                  "content": "设置",
+                  "fontFamily": "Inter",
+                  "fontSize": 22,
+                  "fontWeight": "normal"
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "card-cookie",
+              "name": "Cookie Card",
+              "fill": "$color/surface",
+              "cornerRadius": 12,
+              "stroke": "$color/border",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "cookie-title",
+                  "fill": "$color/text",
+                  "content": "Cookie 认证",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "cookie-row",
+                  "gap": 10,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "input-cookie",
+                      "width": 600,
+                      "fill": "$color/input-bg",
+                      "cornerRadius": 8,
+                      "stroke": "$color/border",
+                      "strokeWidth": 1,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "input-cookie-placeholder",
+                          "fill": "$color/text-muted",
+                          "content": "粘贴 Cookie 字符串...",
+                          "fontFamily": "Inter",
+                          "fontSize": 12,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "btn-cookie-save",
+                      "fill": "$color/accent",
+                      "cornerRadius": 8,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "btn-cookie-save-text",
+                          "fill": "#FFFFFF",
+                          "content": "保存",
+                          "fontFamily": "Inter",
+                          "fontSize": 13,
+                          "fontWeight": "normal"
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "cookie-status",
+                  "gap": 8,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "cookie-dot",
+                      "width": 8,
+                      "height": 8,
+                      "fill": "$color/success",
+                      "cornerRadius": 4
+                    },
+                    {
+                      "type": "text",
+                      "id": "cookie-status-text",
+                      "fill": "$color/success",
+                      "content": "Cookie 有效",
+                      "fontFamily": "Inter",
+                      "fontSize": 12,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "card-paths",
+              "name": "Path Settings Card",
+              "fill": "$color/surface",
+              "cornerRadius": 12,
+              "stroke": "$color/border",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "paths-title",
+                  "fill": "$color/text",
+                  "content": "路径设置",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "path-row-download",
+                  "layout": "vertical",
+                  "gap": 6,
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "label-download-path",
+                      "fill": "$color/text-muted",
+                      "content": "默认下载目录",
+                      "fontFamily": "Inter",
+                      "fontSize": 11,
+                      "fontWeight": "normal"
+                    },
+                    {
+                      "type": "frame",
+                      "id": "row-download-path",
+                      "gap": 8,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "input-download-path",
+                          "width": 680,
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 8,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-download-path-text",
+                              "fill": "$color/text",
+                              "content": "X:\\抖音收藏下载",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "btn-download-path-browse",
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 8,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "icon",
+                              "id": "icon-download-path-browse",
+                              "width": 16,
+                              "height": 16,
+                              "icon": "folder-open",
+                              "library": "lucide",
+                              "fill": "$color/text-muted"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "frame",
+              "id": "card-concurrency",
+              "name": "Concurrency Card",
+              "fill": "$color/surface",
+              "cornerRadius": 12,
+              "stroke": "$color/border",
+              "strokeWidth": 1,
+              "layout": "vertical",
+              "gap": 12,
+              "children": [
+                {
+                  "type": "text",
+                  "id": "concurrency-title",
+                  "fill": "$color/text",
+                  "content": "下载并发",
+                  "fontFamily": "Inter",
+                  "fontSize": 14,
+                  "fontWeight": "normal"
+                },
+                {
+                  "type": "frame",
+                  "id": "concurrency-row",
+                  "gap": 16,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "field-concurrency-settings",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "label-concurrency-settings",
+                          "fill": "$color/text-muted",
+                          "content": "同时下载数",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "input-concurrency-settings",
+                          "width": 80,
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 6,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-concurrency-settings-text",
+                              "fill": "$color/text",
+                              "content": "5",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "field-retries",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "label-retries",
+                          "fill": "$color/text-muted",
+                          "content": "重试次数",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "input-retries",
+                          "width": 80,
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 6,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-retries-text",
+                              "fill": "$color/text",
+                              "content": "3",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "field-interval",
+                      "layout": "vertical",
+                      "gap": 6,
+                      "children": [
+                        {
+                          "type": "text",
+                          "id": "label-interval",
+                          "fill": "$color/text-muted",
+                          "content": "请求间隔 (秒)",
+                          "fontFamily": "Inter",
+                          "fontSize": 11,
+                          "fontWeight": "normal"
+                        },
+                        {
+                          "type": "frame",
+                          "id": "input-interval",
+                          "width": 80,
+                          "fill": "$color/input-bg",
+                          "cornerRadius": 6,
+                          "stroke": "$color/border",
+                          "strokeWidth": 1,
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "input-interval-text",
+                              "fill": "$color/text",
+                              "content": "1.5",
+                              "fontFamily": "Inter",
+                              "fontSize": 12,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variables": {
+    "color/bg": {
+      "type": "color",
+      "value": "#0F1117"
+    },
+    "color/surface": {
+      "type": "color",
+      "value": "#1A1D27"
+    },
+    "color/surface-hover": {
+      "type": "color",
+      "value": "#252836"
+    },
+    "color/border": {
+      "type": "color",
+      "value": "#2D3143"
+    },
+    "color/accent": {
+      "type": "color",
+      "value": "#6366F1"
+    },
+    "color/accent-hover": {
+      "type": "color",
+      "value": "#818CF8"
+    },
+    "color/text": {
+      "type": "color",
+      "value": "#E4E4E7"
+    },
+    "color/text-muted": {
+      "type": "color",
+      "value": "#71717A"
+    },
+    "color/success": {
+      "type": "color",
+      "value": "#22C55E"
+    },
+    "color/warning": {
+      "type": "color",
+      "value": "#F59E0B"
+    },
+    "color/danger": {
+      "type": "color",
+      "value": "#EF4444"
+    },
+    "color/input-bg": {
+      "type": "color",
+      "value": "#252836"
+    }
+  },
+  "fileToken": "8a615132-88df-4b57-88ff-fad1452777d1"
+}

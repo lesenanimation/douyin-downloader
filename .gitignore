@@ -45,6 +45,13 @@ config*.yml
 config/cookies.json
 .omx/
 
+# Project utility scripts (not part of the source)
+*.bat
+.last_sync
+
+# Pencil design tool skill (third-party tooling, not product source)
+design/pencil-skill/
+
 # Editor / IDE local settings
 .claude/
 .idea/
