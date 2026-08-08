@@ -6,12 +6,12 @@
 <title>抖音下载器</title>
 <style>
 :root {
-  --bg: #0d0d1a; --surface: #141428; --surface2: #1a1a35;
-  --border: #232350; --border-light: #2a2a55;
+  --bg: #13120F; --surface: #1C1C1B; --surface2: #242423;
+  --border: #30302E; --border-light: #363634;
   --accent: #fe2c55; --accent-dim: #c72045;
-  --text: #e4e4f0; --text-secondary: #8888aa; --text-muted: #555580;
+  --text: #e4e4f0; --text-secondary: #969693; --text-muted: #6B6B68;
   --success: #00e676; --warning: #ffab40; --error: #ff5252;
-  --input-bg: #0c0c22; --input-border: #2a2a50;
+  --input-bg: #111110; --input-border: #363634;
   --radius: 12px; --radius-sm: 8px;
   --titlebar-h: 40px; --log-w: 400px;
 }
@@ -198,13 +198,13 @@ body { display: flex; flex-direction: column; }
 .dl-header-title { font-size: 15px; font-weight: 700; color: var(--text); }
 .dl-header-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
 
-.config-row { display: flex; gap: 12px; align-items: center; margin-top: 14px; }
+.config-row { display: flex; gap: 12px; align-items: center; margin-top: 24px; }
 .config-row label { font-size: 13px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; min-width: 56px; }
 .config-input { flex: 1; display: flex; align-items: center; gap: 8px; height: 36px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 0 12px; font-family: 'Cascadia Code','Consolas',monospace; font-size: 12px; color: var(--text-muted); outline: none; transition: border-color .15s; }
 .config-input:focus-within { border-color: var(--accent); }
 
-.action-bar-new { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; gap: 16px; }
-.btn-download-new { padding: 0 32px; height: 44px; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; transition: background .15s; flex-shrink: 0; }
+.action-bar-new { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; gap: 16px; }
+.btn-download-new { padding: 0 28px; height: 44px; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; transition: background .15s; flex-shrink: 0; }
 .btn-download-new:hover { background: var(--accent-dim); }
 .btn-download-new:disabled { opacity: .5; cursor: not-allowed; }
 .btn-download-new.running { background: var(--error); }
@@ -216,13 +216,13 @@ body { display: flex; flex-direction: column; }
 .listen-status { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 .action-divider { width: 1px; height: 22px; background: #2a2a28; flex-shrink: 0; }
 
-.toolbar-row { display: flex; gap: 8px; align-items: center; margin-top: 14px; }
-.toolbar-row .btn { height: 36px; padding: 0 14px; font-size: 13px; }
+.toolbar-row { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+.toolbar-row .btn { height: 36px; padding: 0 16px; font-size: 13px; border-radius: 6px; }
 
 .cookie-warn-banner { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 9px 14px; background: rgba(255,171,64,.08); border: 1px solid rgba(255,171,64,.25); border-radius: 6px; font-size: 12px; color: var(--warning); line-height: 1.4; }
 .cookie-warn-banner .warn-icon { flex-shrink: 0; font-size: 14px; }
 
-.status-bar-new { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.status-bar-new { display: flex; align-items: center; justify-content: space-between; margin-top: 12px; padding-top: 0; border-top: 1px solid var(--border); }
 .status-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .status-right { display: flex; gap: 18px; font-size: 11px; color: var(--text-muted); }
 .status-right .stat-val { color: var(--text); font-weight: 600; margin-left: 2px; }
