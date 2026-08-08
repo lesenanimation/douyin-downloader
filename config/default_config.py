@@ -30,7 +30,7 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     "download_pinned": False,
     # 下载博主作品时，是否在作者根目录覆盖保存一张主页首屏截图。
     "homepage_screenshot": False,
-    "mode": ["post"],
+    "mode": ["collect"],  # 默认下载模式：收藏（用户主用场景）
     "number": {
         "post": 0,
         "like": 0,

@@ -109,7 +109,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
 .settings-body { display: flex; flex-direction: column; gap: 14px; }
 .set-row { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
 .set-dir { flex: 1; min-width: 260px; }
-.set-mode { width: 220px; flex-shrink: 0; }
+.set-mode { width: 280px; flex-shrink: 0; }
 .set-conc { width: 110px; flex-shrink: 0; }
 .set-rate { width: 160px; flex-shrink: 0; }
 .ch-left { display: flex; flex-direction: column; gap: 2px; }
@@ -578,7 +578,8 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
             <div class="field set-mode">
               <label>默认模式</label>
               <div class="seg" id="cfgModeSeg">
-                <button type="button" class="seg-item active" data-val="home" onclick="segSelect(this)">主页</button>
+                <button type="button" class="seg-item active" data-val="collect" onclick="segSelect(this)">收藏</button>
+                <button type="button" class="seg-item" data-val="home" onclick="segSelect(this)">主页</button>
                 <button type="button" class="seg-item" data-val="post" onclick="segSelect(this)">作品</button>
                 <button type="button" class="seg-item" data-val="mix" onclick="segSelect(this)">合集</button>
               </div>
@@ -738,14 +739,16 @@ async function loadConfig(){
     if(c.path){$('#cfgPath').value=c.path;$('#downloadPathText').textContent=c.path;}
     if(c.thread)$('#cfgThread').value=c.thread;
     if(c.rate_limit)$('#cfgRate').value=c.rate_limit;
-    // 默认模式: 映射到分段控件 (设计稿: 主页/作品/合集)
-    let mode='home';
+    // 默认模式: 映射到分段控件 (收藏 / 主页 / 作品 / 合集)
+    let mode='collect';
     if(Array.isArray(c.mode)&&c.mode.length)mode=c.mode[0];
     else if(typeof c.mode==='string'&&c.mode)mode=c.mode;
-    let seg='home';
-    if(mode==='post')seg='post';
+    let seg='collect';
+    if(mode==='home')seg='home';
+    else if(mode==='post')seg='post';
     else if(mode==='mix'||mode==='mix2'||mode==='collectmix')seg='mix';
-    else seg='home';
+    else if(mode==='collect')seg='collect';
+    else seg='collect';
     document.querySelectorAll('#cfgModeSeg .seg-item').forEach(b=>b.classList.toggle('active',b.dataset.val===seg));
     $('#cbCover').checked=c.cover!==!1;$('#cbJson').checked=c.json!==!1;
     $('#cbFolder').checked=c.folderstyle!==!1;$('#cbMusic').checked=!!c.music;
