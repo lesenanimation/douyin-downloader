@@ -192,6 +192,44 @@ body { display: flex; flex-direction: column; }
 .cookie-guide { margin-top: 12px; padding: 10px 14px; background: #1a2010; border: 1px solid #2a3a1a; border-radius: 8px; font-size: 12px; color: var(--warning); line-height: 1.5; }
 .cookie-guide strong { color: #fff; }
 
+/* ── Download Page Redesigned ── */
+.dl-header { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+.dl-header-icon { width: 20px; height: 20px; flex-shrink: 0; color: var(--accent); }
+.dl-header-title { font-size: 15px; font-weight: 700; color: var(--text); }
+.dl-header-sub { font-size: 12px; color: var(--text-muted); margin-top: 1px; }
+
+.config-row { display: flex; gap: 12px; align-items: center; margin-top: 14px; }
+.config-row label { font-size: 13px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; min-width: 56px; }
+.config-input { flex: 1; display: flex; align-items: center; gap: 8px; height: 36px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 0 12px; font-family: 'Cascadia Code','Consolas',monospace; font-size: 12px; color: var(--text-muted); outline: none; transition: border-color .15s; }
+.config-input:focus-within { border-color: var(--accent); }
+
+.action-bar-new { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; gap: 16px; }
+.btn-download-new { padding: 0 32px; height: 44px; background: var(--accent); border: none; border-radius: 8px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; transition: background .15s; flex-shrink: 0; }
+.btn-download-new:hover { background: var(--accent-dim); }
+.btn-download-new:disabled { opacity: .5; cursor: not-allowed; }
+.btn-download-new.running { background: var(--error); }
+.listen-group { display: flex; align-items: center; gap: 8px; }
+.listen-group label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.listen-group input { width: 52px; background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 6px; padding: 4px 6px; color: var(--text); font-size: 13px; text-align: center; outline: none; }
+.listen-group input:focus { border-color: var(--accent); }
+.listen-group input:disabled { opacity: .5; }
+.listen-status { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+.action-divider { width: 1px; height: 22px; background: #2a2a28; flex-shrink: 0; }
+
+.toolbar-row { display: flex; gap: 8px; align-items: center; margin-top: 14px; }
+.toolbar-row .btn { height: 36px; padding: 0 14px; font-size: 13px; }
+
+.cookie-warn-banner { display: flex; align-items: center; gap: 8px; margin-top: 14px; padding: 9px 14px; background: rgba(255,171,64,.08); border: 1px solid rgba(255,171,64,.25); border-radius: 6px; font-size: 12px; color: var(--warning); line-height: 1.4; }
+.cookie-warn-banner .warn-icon { flex-shrink: 0; font-size: 14px; }
+
+.status-bar-new { display: flex; align-items: center; justify-content: space-between; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+.status-left { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.status-right { display: flex; gap: 18px; font-size: 11px; color: var(--text-muted); }
+.status-right .stat-val { color: var(--text); font-weight: 600; margin-left: 2px; }
+.status-right .stat-val.ok { color: var(--success); }
+.status-right .stat-val.skip { color: var(--warning); }
+.status-right .stat-val.fail { color: var(--error); }
+
 /* ── Responsive form ── */
 @media (max-width: 800px) {
   .sidebar { display: none; }
@@ -243,56 +281,76 @@ body { display: flex; flex-direction: column; }
 
     <!-- PAGE: Download -->
     <div class="page active" id="page-download">
-      <!-- Status + Cookie -->
-      <div class="card" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
-        <div style="display:flex;align-items:center;gap:12px">
-          <span class="status-badge idle" id="statusBadge">
-            <span class="pulse"></span>
-            <span id="statusText">就绪</span>
-          </span>
-          <span style="font-size:12px;color:var(--text-muted)" id="cookieText">Cookie 检查中...</span>
+      <div class="card" id="card-dl">
+        <!-- Header -->
+        <div class="dl-header">
+          <svg class="dl-header-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          <div>
+            <div class="dl-header-title">下载作品</div>
+            <div class="dl-header-sub">从配置文件读取链接，点击开始下载</div>
+          </div>
         </div>
-        <div style="display:flex;gap:8px">
-          <button class="btn btn-primary btn-sm" id="btnFetch" onclick="fetchCookie()">获取 Cookie</button>
-          <button class="btn btn-primary btn-sm" id="btnConfirm" onclick="confirmCookie()" style="display:none">确认登录</button>
+
+        <!-- Config Row -->
+        <div class="config-row">
+          <label>配置文件</label>
+          <div class="config-input" id="configInputDisplay">
+            <span id="configPathText">config/download_list.yml</span>
+          </div>
+          <button class="btn" id="btnBrowseConfig" onclick="browseConfig()" style="height:36px">浏览...</button>
+        </div>
+
+        <!-- Action Bar (CTA + Monitor merged) -->
+        <div class="action-bar-new">
+          <button class="btn-download-new" id="btnDownload" onclick="toggleDownload()">
+            <span class="play-icon">▶</span>
+            <span class="spinner"></span>
+            <span id="btnDownloadText">开始下载</span>
+          </button>
+          <div class="listen-group">
+            <span class="monitor-dot" id="monitorDot" style="width:7px;height:7px;border-radius:50%;background:var(--text-muted);flex-shrink:0;display:inline-block"></span>
+            <label>间隔</label>
+            <input type="number" id="monitorInterval" value="30" min="5" max="1440">
+            <span style="font-size:11px;color:var(--text-muted)">分钟</span>
+            <button class="btn btn-sm" id="btnMonitor" onclick="toggleMonitor()">开启监听</button>
+            <span class="listen-status" id="monitorText">监听未启动</span>
+          </div>
+        </div>
+
+        <!-- Toolbar Row -->
+        <div class="toolbar-row">
+          <button class="btn" onclick="openDir()">📂 打开目录</button>
+          <button class="btn" id="btnFailed" onclick="openFailedModal()">失败项</button>
+          <button class="btn" id="btnLog" onclick="toggleLog()">📋 日志</button>
+        </div>
+
+        <!-- Cookie Warning Banner -->
+        <div class="cookie-warn-banner" id="cookieWarnBanner">
+          <span class="warn-icon">⚠</span>
+          <span>需要有效的抖音 Cookie 才能下载作品。如未配置，请使用下方按钮完成登录。</span>
+        </div>
+
+        <!-- Status Bar -->
+        <div class="status-bar-new">
+          <div class="status-left">
+            <span class="status-badge idle" id="statusBadge">
+              <span class="pulse"></span>
+              <span id="statusText">就绪</span>
+            </span>
+            <span style="font-size:12px;color:var(--text-muted)" id="cookieText">Cookie 检查中...</span>
+            <button class="btn btn-primary btn-sm" id="btnFetch" onclick="fetchCookie()">获取 Cookie</button>
+            <button class="btn btn-primary btn-sm" id="btnConfirm" onclick="confirmCookie()" style="display:none">确认登录</button>
+          </div>
+          <div class="status-right">
+            <span>已下载<span class="stat-val ok" id="sbCompleted">0</span></span>
+            <span>跳过<span class="stat-val skip" id="sbSkipped">0</span></span>
+            <span>失败<span class="stat-val fail" id="sbFailed">0</span></span>
+          </div>
         </div>
       </div>
 
       <div class="cookie-guide" id="cookieGuide" style="display:none">
         浏览器已打开，请扫码登录抖音后点击「确认登录」
-      </div>
-
-      <!-- Download Action -->
-      <div class="action-bar">
-        <button class="btn btn-primary btn-download" id="btnDownload" onclick="toggleDownload()">
-          <span class="play-icon">▶</span>
-          <span class="spinner"></span>
-          <span id="btnDownloadText">开始下载</span>
-        </button>
-        <button class="btn" onclick="openDir()">📂</button>
-        <button class="btn" id="btnFailed" onclick="openFailedModal()">失败项</button>
-        <button class="btn" id="btnLog" onclick="toggleLog()">📋 日志</button>
-      </div>
-
-      <!-- Stats -->
-      <div class="stats-row">
-        <span class="stat">已下载 <span class="val ok" id="sbCompleted">0</span></span>
-        <span class="stat">跳过 <span class="val skip" id="sbSkipped">0</span></span>
-        <span class="stat">失败 <span class="val fail" id="sbFailed">0</span></span>
-      </div>
-
-      <!-- Monitor -->
-      <div class="monitor-bar">
-        <div class="monitor-left">
-          <span class="monitor-dot" id="monitorDot"></span>
-          <span id="monitorText">监听未启动</span>
-        </div>
-        <div class="monitor-right">
-          <label>间隔</label>
-          <input type="number" id="monitorInterval" value="60" min="5" max="1440">
-          <span style="font-size:11px;color:var(--text-muted)">分钟</span>
-          <button class="btn btn-sm" id="btnMonitor" onclick="toggleMonitor()">开启</button>
-        </div>
       </div>
     </div>
 
@@ -513,7 +571,7 @@ async function saveSettings(){
     rate_limit:parseFloat($('#cfgRate').value)||.5,mode:[m],
     cover:$('#cbCover').checked,json:$('#cbJson').checked,
     folderstyle:$('#cbFolder').checked,music:$('#cbMusic').checked,
-    number:{[m]:0},monitor_interval:parseInt($('#monitorInterval').value)||60};
+    number:{[m]:0},monitor_interval:parseInt($('#monitorInterval').value)||30};
   await api('/api/config',{method:'POST',body:JSON.stringify(d)});
   showToast('设置已保存','success');
 }
@@ -534,6 +592,8 @@ function updateCookieUI(v){
   cookieValid=!!v;
   $('#cookieText').textContent=v?'Cookie 有效':'Cookie 未配置';
   $('#cookieText').style.color=v?'var(--success)':'var(--error)';
+  const wb=$('#cookieWarnBanner');
+  if(wb)wb.style.display=v?'none':'flex';
 }
 let cf=!1;
 async function fetchCookie(){
@@ -559,6 +619,12 @@ async function toggleDownload(){
     await saveSettings();b.disabled=!0;const r=await api('/api/download/start',{method:'POST'});if(r.error){addErrorLog(r.error);showToast(r.error,'error');}b.disabled=!1;}
 }
 async function openDir(){await api('/api/download-dir/open',{method:'POST'});}
+async function browseConfig(){
+  if(window.qtBridge&&typeof window.qtBridge.selectFile==='function'){
+    try{const p=await Promise.resolve(window.qtBridge.selectFile('YAML Files (*.yml *.yaml)||All Files (*)'));if(p){$('#configPathText').textContent=p.split(/[/\\]/).pop();$('#configInputDisplay').title=p;}}
+    catch(e){showToast('选择配置文件失败: '+e,'error');}
+  }else{showToast('请在桌面端使用此功能','info');}
+}
 
 // ── Status ──
 async function checkStatus(){
@@ -623,8 +689,8 @@ function updateMonitorUI(info){
   ma=info.active;$('#monitorDot').className='monitor-dot'+(info.active?' active':'');
   $('#monitorInterval').disabled=info.active;
   const b=$('#btnMonitor');
-  if(info.active){b.textContent='停止';b.className='btn btn-sm btn-danger';startCountdown(info.next_check,info.session_count);}
-  else{b.textContent='开启';b.className='btn btn-sm';$('#monitorText').textContent='监听未启动';stopCountdown();}
+  if(info.active){b.textContent='停止监听';b.className='btn btn-sm btn-danger';startCountdown(info.next_check,info.session_count);}
+  else{b.textContent='开启监听';b.className='btn btn-sm';$('#monitorText').textContent='监听未启动';stopCountdown();}
 }
 function startCountdown(nc,sc){stopCountdown();const u=()=>{if(!nc)return;const r=Math.max(0,Math.floor(nc-Date.now()/1e3));if(!r){$('#monitorText').textContent='监听中 · 检查中...';return;}const h=Math.floor(r/3600),m=Math.floor((r%3600)/60),s=r%60;let c=h?h+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'):String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');$('#monitorText').textContent='监听中 · 下次 '+c+(sc?' · '+sc+' 轮':'');};u();mt=setInterval(u,1e3);}
 function stopCountdown(){if(mt){clearInterval(mt);mt=null;}}
