@@ -962,9 +962,15 @@ function updateProgress(p){
   if((p.cumulative_total||0)>0)cum.innerHTML=`当前总成功任务数：<b>${p.cumulative_total}</b>`;
   else cum.textContent='';
   const sub=$('#progSub');
-  if(p.done>0&&p.total>0)sub.textContent=`正在解析第 ${p.done} 个作品...`;
-  else if(p.done>0)sub.textContent='任务已结束';
-  else sub.textContent='等待任务开始';
+  if(currentStatus==='downloading'){
+    if(p.done>0&&p.total>0)sub.textContent=`正在解析第 ${p.done} 个作品...`;
+    else if(p.done>0)sub.textContent='任务已结束';
+    else sub.textContent='等待任务开始';
+  }else{
+    // 非下载中状态：根据是否有历史数据判断
+    if((p.done||0)>0)sub.textContent='任务已完成';
+    else sub.textContent='等待任务开始';
+  }
 }
 
 // ── Monitor ──
