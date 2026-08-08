@@ -254,7 +254,10 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
 .prog-text { display: flex; flex-direction: column; gap: 2px; }
 .prog-title { font-size: 16px; font-weight: 700; color: var(--text); line-height: 23px; }
 .prog-sub { font-size: 12px; color: var(--text-muted); line-height: 16px; display: flex; gap: 8px; }
-#progTaskCount { color: var(--text-secondary); }
+.prog-meta { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 2px; font-size: 12px; line-height: 16px; }
+.prog-round { color: var(--text-secondary); font-weight: 600; }
+.prog-cum { color: var(--text-muted); }
+.prog-cum b, .prog-round b { color: var(--text); font-weight: 700; }
 .prog-pct { display: flex; align-items: flex-end; gap: 2px; align-self: flex-start; margin-top: 4px; }
 .prog-pct b { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
 .prog-pct i { font-size: 14px; font-weight: 500; color: var(--text-secondary); font-style: normal; line-height: 1.4; }
@@ -432,7 +435,11 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
             </div>
             <div class="prog-text">
               <div class="prog-title">下载进度</div>
-              <div class="prog-sub"><span id="progSub">等待任务开始</span><span id="progTaskCount"></span></div>
+              <div class="prog-sub"><span id="progSub">等待任务开始</span></div>
+              <div class="prog-meta">
+                <span class="prog-round" id="progRound"></span>
+                <span class="prog-cum" id="progCum"></span>
+              </div>
             </div>
           </div>
           <div class="prog-pct"><b id="progPct">0</b><i>%</i></div>
@@ -865,7 +872,7 @@ function connectSSE(){
   sseSource.addEventListener('done',e=>{const d=JSON.parse(e.data);let m='下载完成！新下载 '+d.completed+' 个';if(d.skipped)m+='，跳过 '+d.skipped;if(d.failed)m+='，失败 '+d.failed;showToast(m,d.failed?'error':'success');updateFailedBtnBadge();
     // 同步刷新进度区为完成状态
     const total=(d.completed||0)+(d.skipped||0)+(d.failed||0);
-    updateProgress({percent:100,done:total,total:total,current_file:'',eta:0,speed:0,bytes:0});
+    updateProgress({percent:100,done:total,total:total,round_total:total,cumulative_total:d.cumulative_total||0,current_file:'',eta:0,speed:0,bytes:0});
     $('#progSub').textContent='任务已完成';
   });
   sseSource.addEventListener('git',e=>{const d=JSON.parse(e.data);appendLog(new Date().toLocaleTimeString('zh-CN',{hour12:!1}),'[git] '+d.msg);});
@@ -946,10 +953,14 @@ function updateProgress(p){
   $('#progEta').textContent=fmtEta(p.eta);
   $('#progSpeed').textContent=p.speed>0?fmtBytes(p.speed)+'/s':'—';
   $('#progSize').textContent=fmtBytes(p.bytes);
-  // 任务级计数：仅当 total 可靠时显示（total > done 且 total > 1）
-  const tc=$('#progTaskCount');
-  if(p.total>Math.max(p.done||0,1))tc.textContent=`${p.done||0}/${p.total}`;
-  else tc.textContent='';
+  // 本轮任务：仅当本轮总数可靠时（> 已处理数）显示
+  const rt=$('#progRound');
+  if((p.round_total||0)>Math.max(p.done||0,1))rt.textContent=`本轮任务：${p.done||0} / ${p.round_total}`;
+  else rt.textContent='';
+  // 当前总成功任务数（跨轮累计）
+  const cum=$('#progCum');
+  if((p.cumulative_total||0)>0)cum.innerHTML=`当前总成功任务数：<b>${p.cumulative_total}</b>`;
+  else cum.textContent='';
   const sub=$('#progSub');
   if(p.done>0&&p.total>0)sub.textContent=`正在解析第 ${p.done} 个作品...`;
   else if(p.done>0)sub.textContent='任务已结束';

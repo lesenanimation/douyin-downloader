@@ -30,15 +30,36 @@ _state = {
     'status': 'idle',
     'process': None,
     'logs': [],
+    'baseline_cumulative': -1,  # 每轮开始前已累计成功数（来自 aweme 表），-1 表示未知
     'stats': {'total': 0, 'completed': 0, 'failed': 0, 'skipped': 0},
-    'progress': {'total': 0, 'done': 0, 'percent': 0, 'current_file': '',
+    'progress': {'total': 0, 'done': 0, 'round_total': 0, 'cumulative_total': 0,
+                 'percent': 0, 'current_file': '',
                  'bytes': 0, 'started_at': 0, 'elapsed': 0, 'speed': 0, 'eta': 0},
 }
 
 
+def _get_baseline_cumulative():
+    """只读读取 aweme 表当前行数，作为本轮开始前的累计成功数。失败返回 -1。"""
+    try:
+        db_path = BASE_DIR / 'dy_downloader.db'
+        if not db_path.exists():
+            return -1
+        con = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
+        try:
+            cur = con.execute('SELECT COUNT(*) FROM aweme')
+            row = cur.fetchone()
+            return int(row[0]) if row else 0
+        finally:
+            con.close()
+    except Exception:
+        return -1
+
+
 def _reset_progress():
     with _lock:
-        _state['progress'] = {'total': 0, 'done': 0, 'percent': 0, 'current_file': '',
+        _state['progress'] = {'total': 0, 'done': 0, 'round_total': 0,
+                              'cumulative_total': _state['baseline_cumulative'],
+                              'percent': 0, 'current_file': '',
                               'bytes': 0, 'started_at': time.time(), 'elapsed': 0,
                               'speed': 0, 'eta': 0}
 
@@ -95,6 +116,10 @@ def _recalc_progress():
         p['percent'] = min(100, round(p['done'] / p['total'] * 100))
     elif p['done'] > 0:
         p['percent'] = 0
+    # 本轮总数 = 本轮回填的作品总数（收藏夹规模）；累计成功 = 基线 + 本轮新下载
+    p['round_total'] = p['total']
+    base = _state.get('baseline_cumulative', -1)
+    p['cumulative_total'] = (base + s['completed']) if base >= 0 else p['total']
     started = p['started_at'] or 0
     p['elapsed'] = round(time.time() - started, 1) if started else 0
     if p['elapsed'] > 0 and p['bytes'] > 0:
@@ -315,6 +340,7 @@ def _start_download_task(auto=False):
         _state['stats'] = {'total': 0, 'completed': 0, 'failed': 0, 'skipped': 0}
         if not auto:
             _state['logs'] = []
+        _state['baseline_cumulative'] = _get_baseline_cumulative()
     _reset_progress()
 
     _add_log(f'{tag}开始下载...')
@@ -352,6 +378,8 @@ def _start_download_task(auto=False):
             rc = proc.returncode
             with _lock:
                 stats = dict(_state['stats'])
+            base = _state['baseline_cumulative']
+            stats['cumulative_total'] = (base + stats['completed']) if base >= 0 else _state['progress'].get('cumulative_total', 0)
             msg = f'{tag}下载任务结束 (code {rc})，新下载 {stats["completed"]} 个'
             if stats['skipped']:
                 msg += f'，跳过已下载 {stats["skipped"]} 个'
