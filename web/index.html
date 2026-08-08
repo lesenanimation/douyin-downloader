@@ -47,7 +47,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
 .nav-item .dot.green { background: var(--success); box-shadow: 0 0 6px var(--success); }
 .nav-item .dot.red { background: var(--error); box-shadow: 0 0 6px var(--error); }
 .nav-spacer { flex: 1; }
-.nav-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 4px; font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.nav-footer { padding: 12px 12px 4px; font-size: 11px; color: var(--text-muted); flex-shrink: 0; text-align: center; }
 
 /* ── Main Content Area ── */
 .main-area { flex: 1; display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
@@ -311,7 +311,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
       <svg class="ic" viewBox="0 0 24 24"><path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/></svg> 仓库同步
     </div>
     <div class="nav-spacer"></div>
-    <div class="nav-footer"><span>v2.0</span><span>Douyin DL</span></div>
+    <div class="nav-footer">v2.0 · Douyin DL</div>
   </nav>
 
   <!-- Main Content -->
@@ -549,7 +549,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
             </div>
           </div>
           <div class="field">
-            <label>下载模式</label>
+            <label>默认模式</label>
             <select id="cfgMode">
               <option value="like">喜欢的视频</option>
               <option value="post">作品视频</option>
@@ -564,13 +564,13 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
             <input type="number" id="cfgThread" value="2" min="1" max="10">
           </div>
           <div class="field">
-            <label>请求速率 (次/秒)</label>
-            <input type="number" id="cfgRate" value="0.5" min="0.2" max="5" step="0.1">
+            <label>请求间隔 (秒)</label>
+            <input type="number" id="cfgRate" value="1.5" min="0.2" max="10" step="0.1">
           </div>
           <div class="field full">
             <div class="checkbox-group">
               <label><input type="checkbox" id="cbCover" checked> 下载封面</label>
-              <label><input type="checkbox" id="cbJson" checked> 元数据</label>
+              <label><input type="checkbox" id="cbJson" checked> 下载元数据</label>
               <label><input type="checkbox" id="cbFolder" checked> 按作者分文件夹</label>
               <label><input type="checkbox" id="cbMusic"> 下载音乐</label>
             </div>
