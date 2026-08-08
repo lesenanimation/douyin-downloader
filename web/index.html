@@ -503,7 +503,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
             <label>模式</label>
             <select id="mergeMode">
               <option value="copy">复制（保留源文件）</option>
-              <option value="move">移动（删除源文件）</option>
+              <option value="move" selected>移动（删除源文件）</option>
             </select>
           </div>
           <div class="field">
@@ -982,17 +982,12 @@ async function loadMergeConfig(){
     if(c.extensions!==undefined)$('#mergeExt').value=c.extensions;
     $('#mergeRecurse').checked=c.recurse!==!1;
     $('#mergeClean').checked=!!c.clean_output;
-    // 兜底：源目录 A/B 为空时继承下载路径旧数据（与 output 兜底策略一致）
-    const fallbackPath=$('#cfgPath').value||$('#downloadPathText').textContent||'';
-    if(!$('#mergeSrcA').value&&fallbackPath)$('#mergeSrcA').value=fallbackPath;
-    if(!$('#mergeSrcB').value&&fallbackPath)$('#mergeSrcB').value=fallbackPath;
-    // 二次兜底：若 loadConfig 尚未完成导致 cfgPath 为空，主动拉取
-    if((!$('#mergeSrcA').value||!$('#mergeSrcB').value)){
-      try{const cc=await api('/api/config');const p=cc.path||'';
-        if(p&&!$('#mergeSrcA').value)$('#mergeSrcA').value=p;
-        if(p&&!$('#mergeSrcB').value)$('#mergeSrcB').value=p;
-      }catch(e2){}
-    }
+    // 兜底：源目录 A/B 为空时继承真实子目录旧数据（与 output 兜底策略一致）
+    const basePath=$('#cfgPath').value||$('#downloadPathText').textContent||'X:/抖音收藏下载';
+    if(!$('#mergeSrcA').value)$('#mergeSrcA').value=basePath+'/self';
+    if(!$('#mergeSrcB').value)$('#mergeSrcB').value=basePath+'/self/collect';
+    if(!$('#mergeOutput').value)$('#mergeOutput').value=basePath;
+    if(!$('#mergeMode').value)$('#mergeMode').value='move';
   }catch(e){}
 }
 
