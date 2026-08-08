@@ -18,8 +18,8 @@
   --titlebar-h: 40px; --log-w: 400px;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; font-family: 'Inter', -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; }
-body { display: flex; flex-direction: column; }
+html { height: 100%; overflow: hidden; background: #0b0a08; }
+body { height: 100%; overflow: hidden; font-family: 'Inter', -apple-system, 'Segoe UI', 'Microsoft YaHei', 'PingFang SC', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; border-radius: 12px; border: 1px solid rgba(255,255,255,0.08); }
 svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ── Titlebar ── */
@@ -340,6 +340,15 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
           <button class="btn" id="btnBrowseConfig" onclick="browseConfig()">浏览... <svg class="ic" style="width:14px;height:14px" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg></button>
         </div>
 
+        <!-- Config Row: 下载路径 (继承 config.yml 旧数据) -->
+        <div class="config-row" style="margin-top:10px">
+          <label>下载路径</label>
+          <div class="config-input" id="downloadPathDisplay">
+            <span id="downloadPathText">未配置</span>
+          </div>
+          <button class="btn" id="btnBrowsePath2" onclick="browsePath()">浏览...</button>
+        </div>
+
         <!-- Action Bar (CTA + Monitor merged) -->
         <div class="action-bar-new">
           <button class="btn-download-new" id="btnDownload" onclick="toggleDownload()">
@@ -351,7 +360,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
             <div class="listen-group">
               <span class="monitor-dot" id="monitorDot" style="width:7px;height:7px;border-radius:50%;background:var(--text-muted);flex-shrink:0;display:inline-block"></span>
               <label>间隔</label>
-              <input type="number" id="monitorInterval" value="30" min="5" max="1440">
+              <input type="number" id="monitorInterval" value="60" min="5" max="1440">
               <span style="font-size:11px;color:var(--text-muted)">分钟</span>
               <button class="btn btn-sm" id="btnMonitor" onclick="toggleMonitor()">开启监听</button>
               <span class="listen-status" id="monitorText">监听未启动</span>
@@ -544,7 +553,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
             <select id="cfgMode">
               <option value="like">喜欢的视频</option>
               <option value="post">作品视频</option>
-              <option value="collect">收藏夹视频</option>
+              <option value="collect" selected>收藏夹视频</option>
               <option value="collectmix">收藏合集</option>
               <option value="mix">合集</option>
               <option value="music">音乐</option>
@@ -641,7 +650,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   // 像素对齐模式：URL 带 ?demo=1 时填充设计稿一致的示例数据
   if(location.search.includes('demo=1'))_seedDemoData();
   // 多次强制覆盖监听间隔（对抗异步覆盖）
-  const forceInterval=()=>{$('#monitorInterval').value=30;};
+  const forceInterval=()=>{$('#monitorInterval').value=60;};
   forceInterval();
   setTimeout(forceInterval,100);
   setTimeout(forceInterval,500);
@@ -663,8 +672,8 @@ function _seedDemoData(){
   $('#sbCompleted').textContent='12';
   $('#sbSkipped').textContent='3';
   $('#sbFailed').textContent='0';
-  // 监听间隔对齐设计稿（强制覆盖 loadConfig 的值）
-  $('#monitorInterval').value=30;
+  // 监听间隔对齐旧数据/config（强制覆盖 loadConfig 的值）
+  $('#monitorInterval').value=60;
   // Cookie：设计稿显示⚠️警告横幅可见态
   const wb=$('#cookieWarnBanner');
   if(wb){wb.style.display='flex';}
@@ -697,7 +706,7 @@ async function api(url,opts={}){
 async function loadConfig(){
   try{
     const c=await api('/api/config');
-    if(c.path)$('#cfgPath').value=c.path;
+    if(c.path){$('#cfgPath').value=c.path;$('#downloadPathText').textContent=c.path;}
     if(c.thread)$('#cfgThread').value=c.thread;
     if(c.rate_limit)$('#cfgRate').value=c.rate_limit;
     if(c.mode&&c.mode.length)$('#cfgMode').value=c.mode[0];
@@ -713,7 +722,7 @@ async function saveSettings(){
     rate_limit:parseFloat($('#cfgRate').value)||.5,mode:[m],
     cover:$('#cbCover').checked,json:$('#cbJson').checked,
     folderstyle:$('#cbFolder').checked,music:$('#cbMusic').checked,
-    number:{[m]:0},monitor_interval:parseInt($('#monitorInterval').value)||30};
+    number:{[m]:0},monitor_interval:parseInt($('#monitorInterval').value)||60};
   await api('/api/config',{method:'POST',body:JSON.stringify(d)});
   showToast('设置已保存','success');
 }
