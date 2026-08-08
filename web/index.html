@@ -47,7 +47,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
 .nav-item .dot.green { background: var(--success); box-shadow: 0 0 6px var(--success); }
 .nav-item .dot.red { background: var(--error); box-shadow: 0 0 6px var(--error); }
 .nav-spacer { flex: 1; }
-.nav-footer { display: flex; align-items: center; gap: 8px; padding: 12px 12px 4px; font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.nav-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 4px; font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
 .nav-dot { width: 6px; height: 6px; border-radius: 50%; background: #00E676; flex-shrink: 0; }
 
 /* ── Main Content Area ── */
@@ -331,7 +331,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
       <svg class="ic" viewBox="0 0 24 24"><path d="M12 13v8"/><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="m8 17 4-4 4 4"/></svg> 仓库同步
     </div>
     <div class="nav-spacer"></div>
-    <div class="nav-footer"><span>v2.0 · Douyin DL</span><span class="nav-dot"></span></div>
+    <div class="nav-footer"><span id="appVersion"></span><span id="appAuthor"></span></div>
   </nav>
 
   <!-- Main Content -->
@@ -650,6 +650,8 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
 const $=s=>document.querySelector(s);
 let currentStatus='idle',sseSource=null,autoScroll=!0,currentPage='download',cookieValid=!1;
 const PAGE_TITLES={download:'下载作品',merge:'文件合并',settings:'设置',sync:'仓库同步'};
+const APP_VERSION='v2.0.0', APP_AUTHOR='by 欧型兔';
+$('#appVersion').textContent=APP_VERSION; $('#appAuthor').textContent=APP_AUTHOR;
 
 // ── Navigation ──
 function switchPage(name){
