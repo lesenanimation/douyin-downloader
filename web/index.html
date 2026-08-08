@@ -106,8 +106,14 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
 .checkbox-group input[type="checkbox"] { accent-color: var(--accent); width: 15px; height: 15px; }
 
 /* ── Settings redesigned (matches design spec) ── */
-.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
-.settings-grid .field.full { grid-column: 1 / -1; }
+.settings-body { display: flex; flex-direction: column; gap: 14px; }
+.set-row { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+.set-dir { flex: 1; min-width: 260px; }
+.set-mode { width: 220px; flex-shrink: 0; }
+.set-conc { width: 110px; flex-shrink: 0; }
+.set-rate { width: 160px; flex-shrink: 0; }
+.ch-left { display: flex; flex-direction: column; gap: 2px; }
+.ch-sub { font-size: 11px; color: var(--text-muted); }
 .seg { display: flex; gap: 2px; border: 1px solid var(--input-border); border-radius: 6px; padding: 2px; }
 .seg-item { flex: 1; padding: 7px 6px; border: none; background: transparent; color: var(--text-muted); font-size: 12px; font-weight: 500; border-radius: 5px; cursor: pointer; font-family: inherit; transition: all .15s; }
 .seg-item:hover { color: var(--text-secondary); }
@@ -553,25 +559,42 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
     <!-- PAGE: Settings -->
     <div class="page" id="page-settings">
       <div class="card">
-        <div class="card-header"><h3>下载设置</h3><button class="btn btn-primary btn-sm" onclick="saveSettings()">保存</button></div>
-        <div class="settings-grid">
-          <div class="field full">
-            <label>默认模式</label>
-            <div class="seg" id="cfgModeSeg">
-              <button type="button" class="seg-item active" data-val="home" onclick="segSelect(this)">主页</button>
-              <button type="button" class="seg-item" data-val="post" onclick="segSelect(this)">作品</button>
-              <button type="button" class="seg-item" data-val="mix" onclick="segSelect(this)">合集</button>
+        <div class="card-header">
+          <div class="ch-left">
+            <h3>下载设置</h3>
+            <div class="ch-sub">配置下载行为、存储路径与高级选项</div>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveSettings()">保存设置</button>
+        </div>
+        <div class="settings-body">
+          <div class="set-row">
+            <div class="field set-dir">
+              <label>下载目录</label>
+              <div class="input-row">
+                <input type="text" id="cfgPath" placeholder="选择下载目录...">
+                <button class="btn btn-sm" onclick="browsePath()">浏览</button>
+              </div>
+            </div>
+            <div class="field set-mode">
+              <label>默认模式</label>
+              <div class="seg" id="cfgModeSeg">
+                <button type="button" class="seg-item active" data-val="home" onclick="segSelect(this)">主页</button>
+                <button type="button" class="seg-item" data-val="post" onclick="segSelect(this)">作品</button>
+                <button type="button" class="seg-item" data-val="mix" onclick="segSelect(this)">合集</button>
+              </div>
+            </div>
+            <div class="field set-conc">
+              <label>并发数</label>
+              <div class="val-box"><span class="val-hash">#</span><input type="number" id="cfgThread" class="val-input" value="5" min="1" max="10"></div>
             </div>
           </div>
-          <div class="field">
-            <label>并发数</label>
-            <div class="val-box"><span class="val-hash">#</span><input type="number" id="cfgThread" class="val-input" value="5" min="1" max="10"></div>
+          <div class="set-row">
+            <div class="field set-rate">
+              <label>请求间隔 (秒)</label>
+              <div class="val-box"><svg class="val-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="2" x2="14" y2="2"/><line x1="12" y1="14" x2="15" y2="11"/><circle cx="12" cy="14" r="8"/></svg><input type="number" id="cfgRate" class="val-input" value="1.5" min="0.2" max="10" step="0.1"></div>
+            </div>
           </div>
-          <div class="field">
-            <label>请求间隔 (秒)</label>
-            <div class="val-box"><svg class="val-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="2" x2="14" y2="2"/><line x1="12" y1="14" x2="15" y2="11"/><circle cx="12" cy="14" r="8"/></svg><input type="number" id="cfgRate" class="val-input" value="1.5" min="0.2" max="10" step="0.1"></div>
-          </div>
-          <div class="field full">
+          <div class="set-row">
             <div class="checkbox-group">
               <label><input type="checkbox" id="cbCover" checked> 下载封面</label>
               <label><input type="checkbox" id="cbJson" checked> 下载元数据</label>
