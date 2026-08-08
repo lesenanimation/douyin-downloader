@@ -863,7 +863,12 @@ function connectSSE(){
   sseSource.addEventListener('progress',e=>{updateProgress(JSON.parse(e.data));});
   sseSource.addEventListener('cookie',e=>{const d=JSON.parse(e.data);updateCookieUI(d.valid);if(d.valid)showToast('Cookie 获取成功','success');});
   sseSource.addEventListener('monitor',e=>{updateMonitorUI(JSON.parse(e.data));});
-  sseSource.addEventListener('done',e=>{const d=JSON.parse(e.data);let m='下载完成！新下载 '+d.completed+' 个';if(d.skipped)m+='，跳过 '+d.skipped;if(d.failed)m+='，失败 '+d.failed;showToast(m,d.failed?'error':'success');updateFailedBtnBadge();});
+  sseSource.addEventListener('done',e=>{const d=JSON.parse(e.data);let m='下载完成！新下载 '+d.completed+' 个';if(d.skipped)m+='，跳过 '+d.skipped;if(d.failed)m+='，失败 '+d.failed;showToast(m,d.failed?'error':'success');updateFailedBtnBadge();
+    // 同步刷新进度区为完成状态
+    const total=(d.completed||0)+(d.skipped||0)+(d.failed||0);
+    updateProgress({percent:100,done:total,total:total,current_file:'',eta:0,speed:0,bytes:0});
+    $('#progSub').textContent='任务已完成';
+  });
   sseSource.addEventListener('git',e=>{const d=JSON.parse(e.data);appendLog(new Date().toLocaleTimeString('zh-CN',{hour12:!1}),'[git] '+d.msg);});
   sseSource.addEventListener('git_status',e=>{try{applyGitStatus(JSON.parse(e.data));}catch(_){}});
   sseSource.addEventListener('merge_log',e=>{const d=JSON.parse(e.data);appendLog(new Date().toLocaleTimeString('zh-CN',{hour12:!1}),'[合并] '+d.msg);});
