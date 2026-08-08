@@ -254,6 +254,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
 .prog-text { display: flex; flex-direction: column; gap: 2px; }
 .prog-title { font-size: 16px; font-weight: 700; color: var(--text); line-height: 23px; }
 .prog-sub { font-size: 12px; color: var(--text-muted); line-height: 16px; }
+.prog-task-count { font-size: 12px; color: var(--accent); font-weight: 600; line-height: 16px; }
 .prog-pct { display: flex; align-items: flex-end; gap: 2px; align-self: flex-start; margin-top: 4px; }
 .prog-pct b { font-size: 28px; font-weight: 700; color: var(--text); line-height: 1; }
 .prog-pct i { font-size: 14px; font-weight: 500; color: var(--text-secondary); font-style: normal; line-height: 1.4; }
@@ -432,6 +433,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
             <div class="prog-text">
               <div class="prog-title">下载进度</div>
               <div class="prog-sub" id="progSub">等待任务开始</div>
+              <div class="prog-task-count" id="progTaskCount"></div>
             </div>
           </div>
           <div class="prog-pct"><b id="progPct">0</b><i>%</i></div>
@@ -940,6 +942,11 @@ function updateProgress(p){
   $('#progEta').textContent=fmtEta(p.eta);
   $('#progSpeed').textContent=p.speed>0?fmtBytes(p.speed)+'/s':'—';
   $('#progSize').textContent=fmtBytes(p.bytes);
+  // 任务级计数：本轮总任务数 / 已完成数
+  const tc=$('#progTaskCount');
+  if(p.total>0)tc.textContent=`已完成 ${p.done||0} / ${p.total}`;
+  else if((p.done||0)>0)tc.textContent=`已完成 ${p.done} 个`;
+  else tc.textContent='';
   const sub=$('#progSub');
   if(p.done>0&&p.total>0)sub.textContent=`正在解析第 ${p.done} 个作品...`;
   else if(p.done>0)sub.textContent='任务已结束';
