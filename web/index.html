@@ -61,7 +61,6 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
 
 /* ── Card ── */
 .card { background: var(--card-bg); border: none; border-radius: var(--radius); padding: 20px 24px; flex-shrink: 0; }
-#card-log { flex: 1; min-height: 200px; display: flex; flex-direction: column; }
 #card-dl { padding: 16px 24px; }
 .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .card-header h3 { font-size: 13px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .8px; }
@@ -161,6 +160,19 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
 .log-line.system { color: #5b9bd5; }
 .log-placeholder { color: var(--text-muted); font-style: italic; text-align: center; padding: 40px 0; font-size: 12px; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* ── Log Drawer (右侧抽屉) ── */
+.drawer-mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 300; opacity: 0; visibility: hidden; transition: opacity .2s; }
+.drawer-mask.show { opacity: 1; visibility: visible; }
+.drawer { position: fixed; top: 0; right: 0; height: 100vh; width: 460px; max-width: 92vw; background: var(--surface); border-left: 1px solid var(--border); box-shadow: -8px 0 32px rgba(0,0,0,.4); z-index: 301; display: flex; flex-direction: column; transform: translateX(100%); transition: transform .25s cubic-bezier(.4,0,.2,1); }
+.drawer.open { transform: translateX(0); }
+.drawer-head { display: flex; flex-direction: column; gap: 12px; padding: 16px 18px; border-bottom: 1px solid var(--border); }
+.drawer-title { display: flex; align-items: center; gap: 10px; }
+.drawer-title .log-head-title { font-size: 15px; font-weight: 700; }
+.drawer-title .log-head-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+.drawer .log-filters { flex-wrap: wrap; }
+.drawer .log-head-right { position: absolute; top: 14px; right: 14px; display: flex; gap: 6px; }
+.drawer .log-body { flex: 1; overflow-y: auto; padding: 14px 18px; font-family: var(--mono); font-size: 12.5px; line-height: 1.7; }
 
 /* ── Toast ── */
 .toast { position: fixed; top: 56px; right: 24px; padding: 14px 22px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; color: #fff; z-index: 9999; animation: toastIn .3s; pointer-events: none; max-width: 380px; }
@@ -398,7 +410,7 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
         <div class="toolbar-row">
           <button class="btn" onclick="openDir()">打开目录 <svg class="ic" viewBox="0 0 24 24"><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg></button>
           <button class="btn" id="btnFailed" onclick="openFailedModal()">失败项 <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="8" y2="12"/><line x1="12" x2="12.01" y1="16" y2="16"/></svg></button>
-          <button class="btn" id="btnLog" onclick="toggleLog()">日志 <svg class="ic" viewBox="0 0 24 24"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg></button>
+          <button class="btn" id="btnLog" onclick="openLogDrawer()">日志 <svg class="ic" viewBox="0 0 24 24"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg></button>
         </div>
 
         <!-- Cookie Warning Banner -->
@@ -465,40 +477,51 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
         </div>
       </div>
 
-      <!-- Log Card -->
-      <div class="card" id="card-log">
-        <div class="log-head">
-          <div class="log-head-left">
-            <div class="log-icon">
-              <svg class="ic" viewBox="0 0 24 24"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg>
-            </div>
-            <div class="log-head-text">
-              <div class="log-head-title">运行日志</div>
-              <div class="log-head-sub">实时输出下载过程</div>
-            </div>
-          </div>
-          <div class="log-filters" id="logFilters">
-            <button class="log-chip active" data-filter="all" onclick="setLogFilter('all')">全部 <span class="n" id="lcAll">0</span></button>
-            <button class="log-chip" data-filter="success" onclick="setLogFilter('success')">成功 <span class="n" id="lcOk">0</span></button>
-            <button class="log-chip" data-filter="warning" onclick="setLogFilter('warning')">警告 <span class="n" id="lcWarn">0</span></button>
-            <button class="log-chip" data-filter="error" onclick="setLogFilter('error')">错误 <span class="n" id="lcErr">0</span></button>
-          </div>
-          <div class="log-head-right">
-            <button class="log-act on" id="btnAutoScroll" onclick="toggleAutoScroll()" title="自动滚动">
-              <svg class="ic" viewBox="0 0 24 24"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>
-            </button>
-            <button class="log-act" onclick="clearLog()" title="清空日志">
-              <svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            </button>
-          </div>
-        </div>
-        <div class="log-body" id="logBody">
-          <div class="log-placeholder">等待任务开始...</div>
-        </div>
+      <div style="display:flex;justify-content:flex-end;margin-top:4px">
+        <button class="btn ghost sm" onclick="openLogDrawer()">
+          <svg class="ic" viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg>
+          展开日志
+        </button>
       </div>
 
       <div class="cookie-guide" id="cookieGuide" style="display:none">
         浏览器已打开，请扫码登录抖音后点击「确认登录」
+      </div>
+    </div>
+
+    <!-- LOG DRAWER (右侧抽屉) -->
+    <div class="drawer-mask" id="logDrawerMask" onclick="closeLogDrawer()"></div>
+    <div class="drawer" id="logDrawer">
+      <div class="drawer-head">
+        <div class="drawer-title">
+          <div class="log-icon">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M15 12h-5"/><path d="M15 8h-5"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/><path d="M8 21h12a2 2 0 0 0 2-2v-1a1 1 0 0 0-1-1H11a1 1 0 0 0-1 1v1a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v2a1 1 0 0 0 1 1h3"/></svg>
+          </div>
+          <div>
+            <div class="log-head-title">运行日志</div>
+            <div class="log-head-sub">实时输出下载过程</div>
+          </div>
+        </div>
+        <div class="log-filters" id="logFilters">
+          <button class="log-chip active" data-filter="all" onclick="setLogFilter('all')">全部 <span class="n" id="lcAll">0</span></button>
+          <button class="log-chip" data-filter="success" onclick="setLogFilter('success')">成功 <span class="n" id="lcOk">0</span></button>
+          <button class="log-chip" data-filter="warning" onclick="setLogFilter('warning')">警告 <span class="n" id="lcWarn">0</span></button>
+          <button class="log-chip" data-filter="error" onclick="setLogFilter('error')">错误 <span class="n" id="lcErr">0</span></button>
+        </div>
+        <div class="log-head-right">
+          <button class="log-act on" id="btnAutoScroll" onclick="toggleAutoScroll()" title="自动滚动">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M12 17V3"/><path d="m6 11 6 6 6-6"/><path d="M19 21H5"/></svg>
+          </button>
+          <button class="log-act" onclick="clearLog()" title="清空日志">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+          <button class="log-act" onclick="closeLogDrawer()" title="关闭">
+            <svg class="ic" viewBox="0 0 24 24"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="log-body" id="logBody">
+        <div class="log-placeholder">等待任务开始...</div>
       </div>
     </div>
 
@@ -585,12 +608,14 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
               </div>
             </div>
             <div class="field set-mode">
-              <label>默认模式</label>
+              <label>下载模式（可多选，默认全选）</label>
               <div class="seg" id="cfgModeSeg">
-                <button type="button" class="seg-item active" data-val="collect" onclick="segSelect(this)">收藏</button>
-                <button type="button" class="seg-item" data-val="home" onclick="segSelect(this)">主页</button>
-                <button type="button" class="seg-item" data-val="post" onclick="segSelect(this)">作品</button>
-                <button type="button" class="seg-item" data-val="mix" onclick="segSelect(this)">合集</button>
+                <button type="button" class="seg-item active" data-val="post" onclick="segToggle(this)">作品</button>
+                <button type="button" class="seg-item active" data-val="like" onclick="segToggle(this)">点赞</button>
+                <button type="button" class="seg-item active" data-val="mix" onclick="segToggle(this)">合集</button>
+                <button type="button" class="seg-item active" data-val="music" onclick="segToggle(this)">音乐</button>
+                <button type="button" class="seg-item active" data-val="collect" onclick="segToggle(this)">收藏</button>
+                <button type="button" class="seg-item active" data-val="collectmix" onclick="segToggle(this)">收藏合集</button>
               </div>
             </div>
             <div class="field set-conc">
@@ -672,10 +697,15 @@ function switchPage(name){
 }
 
 // ── Log card ──
-function toggleLog(){
-  switchPage('download');
-  const c=$('#card-log');
-  if(c)c.scrollIntoView({behavior:'smooth',block:'nearest'});
+function openLogDrawer(){
+  $('#logDrawer').classList.add('open');
+  $('#logDrawerMask').classList.add('show');
+  const b=$('#logBody');
+  if(autoScroll)b.scrollTop=b.scrollHeight;
+}
+function closeLogDrawer(){
+  $('#logDrawer').classList.remove('open');
+  $('#logDrawerMask').classList.remove('show');
 }
 function toggleAutoScroll(){
   autoScroll=!autoScroll;
@@ -748,36 +778,35 @@ async function loadConfig(){
     if(c.path){$('#cfgPath').value=c.path;$('#downloadPathText').textContent=c.path;}
     if(c.thread)$('#cfgThread').value=c.thread;
     if(c.rate_limit)$('#cfgRate').value=c.rate_limit;
-    // 默认模式: 映射到分段控件 (收藏 / 主页 / 作品 / 合集)
-    let mode='collect';
-    if(Array.isArray(c.mode)&&c.mode.length)mode=c.mode[0];
-    else if(typeof c.mode==='string'&&c.mode)mode=c.mode;
-    let seg='collect';
-    if(mode==='home')seg='home';
-    else if(mode==='post')seg='post';
-    else if(mode==='mix'||mode==='mix2'||mode==='collectmix')seg='mix';
-    else if(mode==='collect')seg='collect';
-    else seg='collect';
-    document.querySelectorAll('#cfgModeSeg .seg-item').forEach(b=>b.classList.toggle('active',b.dataset.val===seg));
+    // 真实暴露的 6 个模式（与后端 UserModeRegistry 对齐）。配置缺省时默认全选。
+    const realModes=["post","like","mix","music","collect","collectmix"];
+    const sel=new Set();
+    if(Array.isArray(c.mode)&&c.mode.length){c.mode.forEach(x=>sel.add(String(x).trim()));}
+    else if(typeof c.mode==='string'&&c.mode.trim()){sel.add(c.mode.trim());}
+    if(sel.size===0)realModes.forEach(x=>sel.add(x));
+    document.querySelectorAll('#cfgModeSeg .seg-item').forEach(b=>b.classList.toggle('active',sel.has(b.dataset.val)));
     $('#cbCover').checked=c.cover!==!1;$('#cbJson').checked=c.json!==!1;
     $('#cbFolder').checked=c.folderstyle!==!1;$('#cbMusic').checked=!!c.music;
     if(c.monitor&&c.monitor.interval)$('#monitorInterval').value=c.monitor.interval;
   }catch(e){}
 }
 
-function segSelect(el){
-  document.querySelectorAll('#cfgModeSeg .seg-item').forEach(x=>x.classList.remove('active'));
-  el.classList.add('active');
+// 多选切换（模式分段控件支持同时选多个真实模式）
+function segToggle(el){
+  el.classList.toggle('active');
 }
 
 async function saveSettings(){
-  const active=document.querySelector('#cfgModeSeg .seg-item.active');
-  const m=active?active.dataset.val:'home';
+  // 聚合所有已选模式（真实 6 模式可多选）
+  const ms=[...document.querySelectorAll('#cfgModeSeg .seg-item.active')].map(b=>b.dataset.val);
+  const mode = ms.length ? ms : ["post","like","mix","music","collect","collectmix"];
+  const number={};
+  mode.forEach(m=>number[m]=0);
   const d={path:$('#cfgPath').value,thread:parseInt($('#cfgThread').value)||2,
-    rate_limit:parseFloat($('#cfgRate').value)||.5,mode:[m],
+    rate_limit:parseFloat($('#cfgRate').value)||.5,mode:mode,
     cover:$('#cbCover').checked,json:$('#cbJson').checked,
     folderstyle:$('#cbFolder').checked,music:$('#cbMusic').checked,
-    number:{[m]:0},monitor_interval:parseInt($('#monitorInterval').value)||60};
+    number:number,monitor_interval:parseInt($('#monitorInterval').value)||60};
   await api('/api/config',{method:'POST',body:JSON.stringify(d)});
   showToast('设置已保存','success');
 }
