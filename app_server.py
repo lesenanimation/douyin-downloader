@@ -4,7 +4,21 @@ from pathlib import Path
 import yaml
 from flask import Flask, request, jsonify, Response, send_from_directory
 
-BASE_DIR = Path(__file__).parent
+# 打包后（frozen）运行时：web 等只读资源在 _MEIPASS（PyInstaller 临时解压目录），
+# 但 config.yml / 数据库应放在「可执行文件所在目录（安装目录）」——该目录可写，
+# 才能保留用户的默认路径、cookie、模式等设置，并让下载记录持久化。非打包态下
+# EXE_DIR == BUNDLE_DIR == 源码目录，行为与改动前一致。
+FROZEN = getattr(sys, 'frozen', False)
+if FROZEN:
+    EXE_DIR = Path(os.path.dirname(sys.executable)).resolve()
+    BUNDLE_DIR = Path(getattr(sys, '_MEIPASS', EXE_DIR)).resolve()
+else:
+    SCRIPT_DIR = Path(__file__).resolve().parent
+    EXE_DIR = SCRIPT_DIR
+    BUNDLE_DIR = SCRIPT_DIR
+
+# web 静态资源来自冻结包（BUNDLE_DIR）；配置/数据库放在可写安装目录（EXE_DIR）。
+BASE_DIR = BUNDLE_DIR
 
 # 独立化（脱离工具区 desktop_port_registry 共享模块）：常量本地写死。
 APP_KEY = 'douyin-downloader'
@@ -13,7 +27,12 @@ APP_NAME = '抖音收藏下载器'
 SERVER_HOST = '127.0.0.1'
 DEFAULT_PORT = 5091
 
-CONFIG_PATH = BASE_DIR / 'config.yml'
+# 配置优先读取安装目录下的 config.yml（可写，保留路径/cookie/模式）；
+# 找不到时回退到冻结包内（若有）。
+if (EXE_DIR / 'config.yml').exists():
+    CONFIG_PATH = EXE_DIR / 'config.yml'
+else:
+    CONFIG_PATH = BUNDLE_DIR / 'config.yml'
 PYTHON_EXE = sys.executable
 ANSI_RE = re.compile(r'\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 _DOWNLOAD_ERROR_RE = re.compile(r'Download error for (.+?):')
@@ -24,7 +43,7 @@ _CURFILE_RE = re.compile(r'(?:正在下载|downloading|下载)[::\s]+(.+?\.(?:mp
 _SIZE_RE = re.compile(r'([\d.]+)\s*(KB|MB|GB)\b', re.IGNORECASE)
 _UNIT = {'kb': 1024, 'mb': 1024 ** 2, 'gb': 1024 ** 3}
 
-app = Flask(__name__, static_folder=str(BASE_DIR / 'web'), static_url_path='')
+app = Flask(__name__, static_folder=str(BUNDLE_DIR / 'web'), static_url_path='')
 
 _state = {
     'status': 'idle',
@@ -41,7 +60,7 @@ _state = {
 def _get_baseline_cumulative():
     """只读读取 aweme 表当前行数，作为本轮开始前的累计成功数。失败返回 -1。"""
     try:
-        db_path = BASE_DIR / 'dy_downloader.db'
+        db_path = EXE_DIR / 'dy_downloader.db'
         if not db_path.exists():
             return -1
         con = sqlite3.connect(f'file:{db_path}?mode=ro', uri=True)
@@ -181,8 +200,12 @@ def _sub_env():
     return env
 
 
-def _sub_kwargs():
-    kw = {'env': _sub_env(), 'cwd': str(BASE_DIR),
+def _sub_kwargs(worker=None):
+    env = _sub_env()
+    if worker:
+        # 告诉打包后的 exe：以子进程（下载/cookie）模式运行，而非 GUI。
+        env['DOUYIN_WORKER'] = worker
+    kw = {'env': env, 'cwd': str(EXE_DIR),
            'text': True, 'encoding': 'utf-8', 'errors': 'replace'}
     if sys.platform == 'win32':
         kw['creationflags'] = subprocess.CREATE_NO_WINDOW
@@ -210,9 +233,11 @@ def index():
 
 @app.route('/favicon.ico')
 def favicon():
-    ico = BASE_DIR / 'icon.ico'
+    ico = EXE_DIR / 'icon.ico'
+    if not ico.exists():
+        ico = BUNDLE_DIR / 'icon.ico'
     if ico.exists():
-        return send_from_directory(str(BASE_DIR), 'icon.ico', mimetype='image/x-icon')
+        return send_from_directory(str(ico.parent), 'icon.ico', mimetype='image/x-icon')
     return '', 204
 
 
@@ -286,10 +311,14 @@ def start_cookie_fetch():
 
     def run():
         try:
+            if FROZEN:
+                cmd = [PYTHON_EXE, '--config', str(CONFIG_PATH)]
+            else:
+                cmd = [PYTHON_EXE, '-m', 'tools.cookie_fetcher', '--config', str(CONFIG_PATH)]
             proc = subprocess.Popen(
-                [PYTHON_EXE, '-m', 'tools.cookie_fetcher', '--config', str(CONFIG_PATH)],
+                cmd,
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                **_sub_kwargs())
+                **_sub_kwargs(worker='cookie'))
             with _lock:
                 _state['process'] = proc
             for line in iter(proc.stdout.readline, ''):
@@ -349,10 +378,14 @@ def _start_download_task(auto=False):
 
     def run():
         try:
+            if FROZEN:
+                cmd = [PYTHON_EXE, '-c', str(CONFIG_PATH), '-v']
+            else:
+                cmd = [PYTHON_EXE, 'run.py', '-c', str(CONFIG_PATH), '-v']
             proc = subprocess.Popen(
-                [PYTHON_EXE, 'run.py', '-c', str(CONFIG_PATH), '-v'],
+                cmd,
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                **_sub_kwargs())
+                **_sub_kwargs(worker='download'))
             with _lock:
                 _state['process'] = proc
             failed_items = []
@@ -594,7 +627,9 @@ def monitor_status():
 
 def _db_path():
     cfg = _load_config()
-    return str(BASE_DIR / (cfg.get('database_path') or 'dy_downloader.db'))
+    p = cfg.get('database_path') or 'dy_downloader.db'
+    # 相对路径解析到可写安装目录（EXE_DIR），保留下载记录的持久化与累计统计。
+    return str(p if os.path.isabs(p) else EXE_DIR / p)
 
 
 def _query_failed(sql, params=()):

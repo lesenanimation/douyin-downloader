@@ -111,6 +111,25 @@ def wait_for_server(timeout=15):
 
 
 def main():
+    # 打包后：同一 exe 可作为「下载/抓取子进程」被 app_server 拉起。
+    # 通过环境变量 DOUYIN_WORKER 区分，避免弹出 GUI / 启动 Flask。
+    if FROZEN and os.environ.get('DOUYIN_WORKER') == 'download':
+        try:
+            from cli.main import main as _worker_main
+            _worker_main()
+        except SystemExit:
+            pass
+        return
+    if FROZEN and os.environ.get('DOUYIN_WORKER') == 'cookie':
+        try:
+            from tools.cookie_fetcher import main as _cf_main
+            sys.exit(_cf_main(sys.argv[1:]))
+        except SystemExit:
+            raise
+        except Exception as exc:  # 抓取失败不应崩溃进程
+            print(f'[ERROR] cookie fetch worker failed: {exc}', file=sys.stderr)
+            sys.exit(1)
+
     log(f'[{time.strftime("%Y-%m-%d %H:%M:%S")}] Starting DouyinFavDL client...')
 
     server_thread = threading.Thread(target=start_flask, daemon=True)

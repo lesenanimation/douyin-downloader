@@ -2,9 +2,15 @@
 """PyInstaller spec — 打包为独立 exe，无终端黑窗。"""
 
 import sys
+import os
 from pathlib import Path
+from PyInstaller.utils.hooks import collect_submodules
 
-ROOT = Path(__file__).parent
+try:
+    ROOT = Path(__file__).resolve().parent
+except NameError:
+    # 使用 `python -m PyInstaller` 运行时 spec 内 __file__ 未定义，回退到当前工作目录
+    ROOT = Path(os.getcwd()).resolve()
 
 a = Analysis(
     ["client.py"],
@@ -18,6 +24,8 @@ a = Analysis(
         "aiohttp", "aiofiles", "aiosqlite", "httpx",
         # UI
         "rich", "yaml", "dateutil",
+        # rich 14.x 动态 Unicode 数据子模块（importlib.import_module 加载，PyInstaller 静态分析无法捕获）
+        *collect_submodules("rich._unicode_data"),
         # crypto
         "gmssl",
         # flask
