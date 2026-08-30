@@ -4,6 +4,15 @@ IS_WIN = sys.platform == 'win32'
 if IS_WIN:
     import ctypes
 
+# QtWebEngine 在部分 Windows 环境（远程桌面/无独立 GPU/特定显卡驱动）下
+# GPU 加速渲染会失败，表现为窗口只见 QMainWindow 底色、WebEngine 内容白屏。
+# 提前禁用 GPU 加速改用软件渲染兜底，避免白屏。
+if IS_WIN:
+    os.environ.setdefault(
+        'QTWEBENGINE_CHROMIUM_FLAGS',
+        '--disable-gpu --disable-gpu-compositing',
+    )
+
 FROZEN = getattr(sys, 'frozen', False)
 if FROZEN:
     EXE_DIR = os.path.dirname(sys.executable)
@@ -110,6 +119,42 @@ def wait_for_server(timeout=15):
     return False
 
 
+def _acquire_single_instance_lock():
+    """确保只有一个 GUI 实例运行。
+
+    用 Windows 命名互斥体做单实例锁：句柄随进程存活，进程退出自动释放。
+    已有实例持有同名互斥体时 CreateMutex 返回 ERROR_ALREADY_EXISTS(183)。
+    返回句柄表示获取成功（持有到进程退出）；返回 None 表示已有实例在跑。
+    非 Windows 平台不锁，直接放行。
+    """
+    if not IS_WIN:
+        return object()
+    kernel32 = ctypes.windll.kernel32
+    mutex_name = 'Local\\DouyinFavDL.Client.SingleInstance'
+    handle = kernel32.CreateMutexW(None, False, mutex_name)
+    if not handle:
+        # 互斥体创建失败不阻断启动（宁可不锁，也不要误伤正常使用）
+        return object()
+    if kernel32.GetLastError() == 183:  # ERROR_ALREADY_EXISTS
+        kernel32.CloseHandle(handle)
+        return None
+    return handle
+
+
+def _notify_already_running():
+    log('[WARN] 已有实例在运行，本次启动已退出')
+    if IS_WIN:
+        try:
+            ctypes.windll.user32.MessageBoxW(
+                None,
+                '抖音收藏下载器已在运行，请勿重复启动。',
+                APP_NAME,
+                0x40,  # MB_ICONINFORMATION
+            )
+        except Exception:
+            pass
+
+
 def main():
     # 打包后：同一 exe 可作为「下载/抓取子进程」被 app_server 拉起。
     # 通过环境变量 DOUYIN_WORKER 区分，避免弹出 GUI / 启动 Flask。
@@ -131,6 +176,12 @@ def main():
             sys.exit(1)
 
     log(f'[{time.strftime("%Y-%m-%d %H:%M:%S")}] Starting DouyinFavDL client...')
+
+    # 单实例锁：已有 GUI 实例运行时禁止再起新实例，避免双实例并发请求触发风控。
+    _single_instance_handle = _acquire_single_instance_lock()
+    if _single_instance_handle is None:
+        _notify_already_running()
+        return
 
     server_thread = threading.Thread(target=start_flask, daemon=True)
     server_thread.start()
