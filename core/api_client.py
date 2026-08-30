@@ -401,6 +401,10 @@ class DouyinAPIClient:
         delays = [1, 2, 5]
         last_exc: Optional[Exception] = None
         risk_control_hit = False
+        # Keep the POST form body on a dedicated name. The success path used
+        # to rebind ``data`` to the parsed JSON, which would send the previous
+        # response as the next retry body if that path ever continued looping.
+        form_body = dict(data) if isinstance(data, dict) else data
 
         for attempt in range(max_retries):
             started = time.monotonic()
@@ -409,7 +413,7 @@ class DouyinAPIClient:
             if base_url:
                 signing_kwargs["base_url"] = base_url
             if method == "POST":
-                signing_kwargs["request_data"] = data
+                signing_kwargs["request_data"] = form_body
             signed_url, ua = self.build_signed_path(path, params, **signing_kwargs)
             signer = "a_bogus" if "a_bogus=" in signed_url else "x_bogus"
             logger.info(
@@ -431,7 +435,7 @@ class DouyinAPIClient:
                 "proxy": self.proxy or None,
             }
             if method == "POST":
-                request_kwargs["data"] = data or {}
+                request_kwargs["data"] = form_body or {}
             try:
                 async with request(signed_url, **request_kwargs) as response:
                     if response.status == 200:
@@ -457,12 +461,12 @@ class DouyinAPIClient:
                                 await asyncio.sleep(delay)
                             continue
                         try:
-                            data = await response.json(content_type=None)
+                            payload = await response.json(content_type=None)
                         except Exception:
                             import json as _json
 
                             try:
-                                data = _json.loads(body)
+                                payload = _json.loads(body)
                             except Exception:
                                 logger.warning(
                                     "Non-JSON 200 response for %s, length=%d duration_ms=%d",
@@ -471,7 +475,7 @@ class DouyinAPIClient:
                                     _elapsed_ms(started),
                                 )
                                 return {}
-                        result = data if isinstance(data, dict) else {}
+                        result = payload if isinstance(payload, dict) else {}
                         _log_api_response(path, attempt, max_retries, body, result, started)
                         if _is_login_required(result):
                             raise LoginRequiredError(
@@ -553,6 +557,20 @@ class DouyinAPIClient:
         source: str = "api",
     ) -> Dict[str, Any]:
         raw = raw_data if isinstance(raw_data, dict) else {}
+        if not raw:
+            # ``_request_json`` returns ``{}`` after retries are exhausted.
+            # That must not look like a successful empty page, or callers
+            # stop paging and report "0 items" as if the user had no content.
+            return {
+                "items": [],
+                "aweme_list": [],
+                "has_more": False,
+                "max_cursor": 0,
+                "status_code": -1,
+                "source": "failed",
+                "risk_flags": {"login_tip": False, "verify_page": False},
+                "raw": {},
+            }
         keys = item_keys or []
         keys = ["items", *keys, "aweme_list", "mix_list", "music_list"]
 
@@ -771,7 +789,11 @@ class DouyinAPIClient:
         """
         if sec_uid and sec_uid != "self":
             logger.warning("Account collection currently requires self sec_uid, got=%s", sec_uid)
-            return self._normalize_paged_response({}, item_keys=["aweme_list"], source="api")
+            return self._normalize_paged_response(
+                {"status_code": 0, "aweme_list": [], "has_more": 0, "cursor": 0},
+                item_keys=["aweme_list"],
+                source="api",
+            )
 
         params = await self._default_query()
         params.update(
@@ -798,7 +820,11 @@ class DouyinAPIClient:
     ) -> Dict[str, Any]:
         if sec_uid and sec_uid != "self":
             logger.warning("Collect folders currently require self sec_uid, got=%s", sec_uid)
-            return self._normalize_paged_response({}, item_keys=["collects_list"], source="api")
+            return self._normalize_paged_response(
+                {"status_code": 0, "collects_list": [], "has_more": 0, "cursor": 0},
+                item_keys=["collects_list"],
+                source="api",
+            )
 
         params = await self._build_collect_page_params(max_cursor, count)
         raw = await self._request_json("/aweme/v1/web/collects/list/", params)
@@ -817,7 +843,11 @@ class DouyinAPIClient:
     ) -> Dict[str, Any]:
         if sec_uid and sec_uid != "self":
             logger.warning("Collect mix currently require self sec_uid, got=%s", sec_uid)
-            return self._normalize_paged_response({}, item_keys=["mix_infos"], source="api")
+            return self._normalize_paged_response(
+                {"status_code": 0, "mix_infos": [], "has_more": 0, "cursor": 0},
+                item_keys=["mix_infos"],
+                source="api",
+            )
 
         params = await self._build_collect_page_params(max_cursor, count)
         raw = await self._request_json("/aweme/v1/web/mix/listcollection/", params)

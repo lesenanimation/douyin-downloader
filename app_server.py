@@ -257,6 +257,15 @@ def update_config():
             cfg[key] = updates[key]
     if 'mode' in updates:
         new_modes = updates['mode'] if isinstance(updates['mode'], list) else [updates['mode']]
+        new_modes = [str(m).strip() for m in new_modes if str(m).strip()]
+        collect = [m for m in new_modes if m in ('collect', 'collectmix')]
+        regular = [m for m in new_modes if m not in ('collect', 'collectmix')]
+        if not new_modes:
+            return jsonify({'error': '请选择至少一种下载模式'}), 400
+        if collect and regular:
+            return jsonify({
+                'error': '收藏/收藏合集不能与作品/点赞/合集/音乐同时选择，请只保留其中一类',
+            }), 400
         cfg['mode'] = new_modes
         _auto_fix_link(cfg, new_modes)
     if 'number' in updates:

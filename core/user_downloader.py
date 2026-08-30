@@ -42,8 +42,7 @@ class UserDownloader(BaseDownloader):
             raise RuntimeError("无法从链接中解析出用户 ID，请确认链接是否完整")
 
         modes = self._configured_modes()
-        if not self._validate_mode_scope(sec_uid, modes):
-            return result
+        self._validate_mode_scope(sec_uid, modes)
 
         sec_uid = await self._resolve_self_alias(sec_uid, modes)
 
@@ -208,7 +207,7 @@ class UserDownloader(BaseDownloader):
         target.failed += source.failed
         target.skipped += source.skipped
 
-    def _validate_mode_scope(self, sec_uid: str, modes: List[str]) -> bool:
+    def _validate_mode_scope(self, sec_uid: str, modes: List[str]) -> None:
         normalized_modes = {str(mode or "").strip() for mode in modes}
         has_collect_mode = bool(normalized_modes & self.SELF_COLLECT_MODES)
         has_regular_mode = bool(normalized_modes - self.SELF_COLLECT_MODES)
@@ -230,11 +229,16 @@ class UserDownloader(BaseDownloader):
                     "/user/self?showTab=favorite_collection or "
                     "my-content 下载本收藏夹 (collects_id required)"
                 )
-                return False
+                raise RuntimeError(
+                    "收藏/收藏合集模式只支持当前登录账号（/user/self），"
+                    "或指定收藏夹 ID 后下载"
+                )
         if has_collect_mode and has_regular_mode:
             logger.error("Modes collect/collectmix cannot be combined with post/like/mix/music")
-            return False
-        return True
+            raise RuntimeError(
+                "收藏/收藏合集不能与作品/点赞/合集/音乐同时下载，"
+                "请在设置里只保留其中一类"
+            )
 
     def _filter_pinned_items(self, items: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         if self._download_pinned_enabled():

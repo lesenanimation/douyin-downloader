@@ -54,6 +54,7 @@ class CollectUserModeStrategy(BaseUserModeStrategy):
             page = self._normalize_page_data(page_data)
             page_items = page.get("items", [])
             if not page_items:
+                self._abort_if_page_failed(page, len(expanded))
                 break
 
             for item in page_items:
@@ -94,7 +95,11 @@ class CollectUserModeStrategy(BaseUserModeStrategy):
         # custom folders. Older API doubles may not implement it, so keep the
         # custom-folder path backward-compatible while real clients include it.
         if callable(fetch_account_collection):
-            account_items = await self._collect_paged_entries(fetch_account_collection, "self")
+            account_items = await self._collect_paged_entries(
+                fetch_account_collection,
+                "self",
+                raise_on_empty_failure=False,
+            )
             for item in account_items:
                 aweme = self._extract_aweme_from_item(item)
                 if not aweme:
@@ -105,7 +110,13 @@ class CollectUserModeStrategy(BaseUserModeStrategy):
                 seen_aweme.add(aweme_id)
                 expanded.append(aweme)
 
-        raw_collects = await self._collect_paged_entries(fetch_collects, sec_uid)
+        # Folder metadata is extra; if the account feed already returned
+        # items, a failed folder-list request must not discard them.
+        raw_collects = await self._collect_paged_entries(
+            fetch_collects,
+            sec_uid,
+            raise_on_empty_failure=not expanded,
+        )
         for collect_item in raw_collects:
             collects_id = self._extract_collects_id(collect_item)
             if not collects_id:
@@ -119,6 +130,7 @@ class CollectUserModeStrategy(BaseUserModeStrategy):
                 page = self._normalize_page_data(page_data)
                 page_items = page.get("items", [])
                 if not page_items:
+                    self._abort_if_page_failed(page, len(expanded))
                     break
 
                 for item in page_items:

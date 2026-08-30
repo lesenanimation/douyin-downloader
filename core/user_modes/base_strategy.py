@@ -116,6 +116,7 @@ class BaseUserModeStrategy(ABC):
             page = self._normalize_page_data(page_data)
             page_items = self.select_items(page)
             if not page_items:
+                self._abort_if_page_failed(page, len(aweme_list))
                 break
 
             if stop_at_downloaded_aweme:
@@ -172,6 +173,7 @@ class BaseUserModeStrategy(ABC):
         fetcher,
         *fetch_args: Any,
         count: int = 20,
+        raise_on_empty_failure: bool = True,
     ) -> List[Dict[str, Any]]:
         entries: List[Dict[str, Any]] = []
         max_cursor = 0
@@ -184,6 +186,15 @@ class BaseUserModeStrategy(ABC):
             page = self._normalize_page_data(page_data)
             page_items = self.select_items(page)
             if not page_items:
+                if raise_on_empty_failure:
+                    self._abort_if_page_failed(page, len(entries))
+                elif self._page_request_failed(page):
+                    logger.warning(
+                        "Mode %s skipped failed empty page (status_code=%s source=%s)",
+                        self.mode_name,
+                        page.get("status_code"),
+                        page.get("source"),
+                    )
                 break
 
             entries.extend(page_items)
@@ -248,6 +259,7 @@ class BaseUserModeStrategy(ABC):
                 page = self._normalize_page_data(page_data)
                 page_items = page.get("items", [])
                 if not page_items:
+                    self._abort_if_page_failed(page, len(expanded))
                     break
 
                 for aweme in page_items:
@@ -288,7 +300,13 @@ class BaseUserModeStrategy(ABC):
     @staticmethod
     def _normalize_page_data(data: Any) -> Dict[str, Any]:
         if not isinstance(data, dict):
-            return {"items": [], "has_more": False, "max_cursor": 0, "status_code": -1}
+            return {
+                "items": [],
+                "has_more": False,
+                "max_cursor": 0,
+                "status_code": -1,
+                "source": "failed",
+            }
 
         if isinstance(data.get("items"), list):
             return {
@@ -298,6 +316,7 @@ class BaseUserModeStrategy(ABC):
                 "status_code": int(data.get("status_code", 0) or 0),
                 "raw": data.get("raw", data),
                 "risk_flags": data.get("risk_flags", {}),
+                "source": data.get("source", "api"),
             }
 
         raw_items = data.get("aweme_list") or []
@@ -308,4 +327,29 @@ class BaseUserModeStrategy(ABC):
             "status_code": int(data.get("status_code", 0) or 0),
             "raw": data,
             "risk_flags": {},
+            "source": data.get("source", "api"),
         }
+
+    @staticmethod
+    def _page_request_failed(page: Dict[str, Any]) -> bool:
+        if page.get("source") == "failed":
+            return True
+        try:
+            return int(page.get("status_code", 0) or 0) == -1
+        except (TypeError, ValueError):
+            return False
+
+    def _abort_if_page_failed(self, page: Dict[str, Any], collected_count: int) -> None:
+        if not self._page_request_failed(page):
+            return
+        if collected_count == 0:
+            raise RuntimeError(
+                "抖音接口未返回内容（可能触发了反爬限制或 Cookie 失效），"
+                "请稍后重试或重新登录抖音刷新 Cookie"
+            )
+        logger.warning(
+            "Mode %s stopped after API failure (status_code=%s source=%s)",
+            self.mode_name,
+            page.get("status_code"),
+            page.get("source"),
+        )

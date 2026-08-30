@@ -279,11 +279,33 @@ def test_user_downloader_rejects_non_self_collect_mode(tmp_path, monkeypatch):
     monkeypatch.setattr(downloader, "_should_download", _always_true)
     monkeypatch.setattr(downloader, "_download_aweme_assets", _download_ok)
 
+    try:
+        asyncio.run(downloader.download({"sec_uid": "sec_uid_x"}))
+        raise AssertionError("non-self collect mode should raise")
+    except RuntimeError as exc:
+        assert "只支持当前登录账号" in str(exc)
+
+    assert downloader.api_client.user_info_calls == []
+    assert downloader.api_client.collect_calls == 0
+
+
+def test_user_downloader_allows_non_self_collect_with_collects_id(tmp_path, monkeypatch):
+    downloader = _build_downloader(tmp_path, mode=["collect"])
+    downloader.config._data["collects_id"] = "collect-1"
+
+    async def _always_true(*_args, **_kwargs):
+        return True
+
+    async def _download_ok(*_args, **_kwargs):
+        return True
+
+    monkeypatch.setattr(downloader, "_should_download", _always_true)
+    monkeypatch.setattr(downloader, "_download_aweme_assets", _download_ok)
+
     result = asyncio.run(downloader.download({"sec_uid": "sec_uid_x"}))
 
-    assert result.total == 0
-    assert result.success == 0
-    assert downloader.api_client.user_info_calls == []
+    assert result.total == 1
+    assert result.success == 1
     assert downloader.api_client.collect_calls == 0
 
 
@@ -385,10 +407,12 @@ def test_user_downloader_rejects_mixed_self_collect_and_regular_modes(tmp_path, 
     monkeypatch.setattr(downloader, "_should_download", _always_true)
     monkeypatch.setattr(downloader, "_download_aweme_assets", _download_ok)
 
-    result = asyncio.run(downloader.download({"sec_uid": "self"}))
+    try:
+        asyncio.run(downloader.download({"sec_uid": "self"}))
+        raise AssertionError("mixed collect/post modes should raise")
+    except RuntimeError as exc:
+        assert "不能与作品" in str(exc)
 
-    assert result.total == 0
-    assert result.success == 0
     assert downloader.api_client.user_info_calls == []
     assert downloader.api_client.collect_calls == 0
 

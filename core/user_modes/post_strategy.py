@@ -220,11 +220,22 @@ class PostUserModeStrategy(BaseUserModeStrategy):
 
     @staticmethod
     def _empty_page_is_restricted(page: Dict[str, Any], request_cursor: int) -> bool:
-        restricted = page.get("status_code") == 0
+        try:
+            status_code = int(page.get("status_code", 0) or 0)
+        except (TypeError, ValueError):
+            status_code = 0
+        restricted = (
+            status_code == 0
+            or status_code == -1
+            or page.get("source") == "failed"
+        )
         if restricted:
             logger.warning(
-                "User post page empty at cursor=%s (status_code=0); will attempt browser fallback",
+                "User post page empty at cursor=%s (status_code=%s source=%s); "
+                "will attempt browser fallback",
                 request_cursor,
+                page.get("status_code"),
+                page.get("source", "unknown"),
             )
         return restricted
 

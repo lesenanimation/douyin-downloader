@@ -732,3 +732,121 @@ def test_collect_mix_strategy_expansion_does_not_apply_number_limit_or_increase_
     strategy = CollectMixUserModeStrategy(_Downloader())
     items = asyncio.run(strategy.collect_items("self", {"uid": "self"}))
     assert [item["aweme_id"] for item in items] == ["mix-aweme-1", "mix-aweme-2"]
+
+
+def test_like_strategy_raises_on_failed_empty_first_page():
+    class _API:
+        async def get_user_like(self, _sec_uid, max_cursor=0, count=20):
+            return {
+                "items": [],
+                "has_more": False,
+                "max_cursor": 0,
+                "status_code": -1,
+                "source": "failed",
+            }
+
+    class _Downloader:
+        def __init__(self):
+            self.api_client = _API()
+            self.rate_limiter = _NoopRateLimiter()
+            self.config = type(
+                "Cfg",
+                (),
+                {
+                    "get": lambda _self, key, default=None: {
+                        "number": {"like": 0},
+                        "increase": {"like": False},
+                    }.get(key, default)
+                },
+            )()
+            self.database = None
+            self._filter_by_time = lambda items: items
+            self._limit_count = lambda items, _mode: items
+
+    strategy = LikeUserModeStrategy(_Downloader())
+    try:
+        asyncio.run(strategy.collect_items("sec_uid_x", {"uid": "uid-1"}))
+        raise AssertionError("failed empty first page should raise")
+    except RuntimeError as exc:
+        assert "未返回内容" in str(exc)
+
+
+def test_like_strategy_treats_successful_empty_page_as_no_items():
+    class _API:
+        async def get_user_like(self, _sec_uid, max_cursor=0, count=20):
+            return {
+                "items": [],
+                "has_more": False,
+                "max_cursor": 0,
+                "status_code": 0,
+                "source": "api",
+            }
+
+    class _Downloader:
+        def __init__(self):
+            self.api_client = _API()
+            self.rate_limiter = _NoopRateLimiter()
+            self.config = type(
+                "Cfg",
+                (),
+                {
+                    "get": lambda _self, key, default=None: {
+                        "number": {"like": 0},
+                        "increase": {"like": False},
+                    }.get(key, default)
+                },
+            )()
+            self.database = None
+            self._filter_by_time = lambda items: items
+            self._limit_count = lambda items, _mode: items
+
+    strategy = LikeUserModeStrategy(_Downloader())
+    items = asyncio.run(strategy.collect_items("sec_uid_x", {"uid": "uid-1"}))
+    assert items == []
+
+
+def test_collect_strategy_keeps_account_items_when_folder_list_fails():
+    class _API:
+        async def get_user_collection(self, _sec_uid, max_cursor=0, count=20):
+            if max_cursor > 0:
+                return {"items": [], "has_more": False, "max_cursor": max_cursor, "status_code": 0}
+            return {
+                "items": [_make_aweme("account-1")],
+                "has_more": False,
+                "max_cursor": 0,
+                "status_code": 0,
+            }
+
+        async def get_user_collects(self, _sec_uid, max_cursor=0, count=20):
+            return {
+                "items": [],
+                "has_more": False,
+                "max_cursor": 0,
+                "status_code": -1,
+                "source": "failed",
+            }
+
+        async def get_collect_aweme(self, collects_id, max_cursor=0, count=20):
+            raise AssertionError("folder videos should not be fetched after folder-list failure")
+
+    class _Downloader:
+        def __init__(self):
+            self.api_client = _API()
+            self.rate_limiter = _NoopRateLimiter()
+            self.database = None
+            self.config = type(
+                "Cfg",
+                (),
+                {
+                    "get": lambda _self, key, default=None: {
+                        "number": {"collect": 0},
+                        "increase": {"collect": False},
+                    }.get(key, default)
+                },
+            )()
+            self._filter_by_time = lambda items: items
+            self._limit_count = lambda items, _mode: items
+
+    strategy = CollectUserModeStrategy(_Downloader())
+    items = asyncio.run(strategy.collect_items("self", {"uid": "self"}))
+    assert [item["aweme_id"] for item in items] == ["account-1"]

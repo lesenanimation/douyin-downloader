@@ -850,3 +850,46 @@ async def test_get_video_detail_returns_on_first_success():
     assert detail is not None
     assert detail["aweme_id"] == "456"
     assert call_count == 1  # no retry needed
+
+
+def test_normalize_paged_response_marks_empty_dict_as_failed():
+    client = DouyinAPIClient({"msToken": "token-1"})
+    failed = client._normalize_paged_response({})
+    assert failed["items"] == []
+    assert failed["status_code"] == -1
+    assert failed["source"] == "failed"
+    assert failed["has_more"] is False
+
+
+def test_normalize_paged_response_keeps_successful_empty_page():
+    client = DouyinAPIClient({"msToken": "token-1"})
+    empty = client._normalize_paged_response(
+        {"status_code": 0, "aweme_list": [], "has_more": 0, "cursor": 0},
+        item_keys=["aweme_list"],
+    )
+    assert empty["items"] == []
+    assert empty["status_code"] == 0
+    assert empty["source"] == "api"
+    assert empty["has_more"] is False
+
+
+@pytest.mark.asyncio
+async def test_collect_endpoints_treat_non_self_as_successful_empty(monkeypatch):
+    client = DouyinAPIClient({"msToken": "token-1"})
+
+    async def _should_not_request(*_args, **_kwargs):
+        raise AssertionError("non-self collect endpoints must not hit the network")
+
+    monkeypatch.setattr(client, "_request_json", _should_not_request)
+
+    collection = await client.get_user_collection("sec-1")
+    collects = await client.get_user_collects("sec-1")
+    collect_mix = await client.get_user_collect_mix("sec-1")
+
+    assert collection["status_code"] == 0
+    assert collection["source"] != "failed"
+    assert collection["items"] == []
+    assert collects["status_code"] == 0
+    assert collects["items"] == []
+    assert collect_mix["status_code"] == 0
+    assert collect_mix["items"] == []

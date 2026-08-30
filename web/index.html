@@ -608,14 +608,14 @@ svg.ic { flex-shrink: 0; stroke: currentColor; fill: none; stroke-width: 2; stro
               </div>
             </div>
             <div class="field set-mode">
-              <label>下载模式（可多选，默认全选）</label>
+              <label>下载模式（同类可多选，收藏不能和作品同时选）</label>
               <div class="seg" id="cfgModeSeg">
-                <button type="button" class="seg-item active" data-val="post" onclick="segToggle(this)">作品</button>
-                <button type="button" class="seg-item active" data-val="like" onclick="segToggle(this)">点赞</button>
-                <button type="button" class="seg-item active" data-val="mix" onclick="segToggle(this)">合集</button>
-                <button type="button" class="seg-item active" data-val="music" onclick="segToggle(this)">音乐</button>
+                <button type="button" class="seg-item" data-val="post" onclick="segToggle(this)">作品</button>
+                <button type="button" class="seg-item" data-val="like" onclick="segToggle(this)">点赞</button>
+                <button type="button" class="seg-item" data-val="mix" onclick="segToggle(this)">合集</button>
+                <button type="button" class="seg-item" data-val="music" onclick="segToggle(this)">音乐</button>
                 <button type="button" class="seg-item active" data-val="collect" onclick="segToggle(this)">收藏</button>
-                <button type="button" class="seg-item active" data-val="collectmix" onclick="segToggle(this)">收藏合集</button>
+                <button type="button" class="seg-item" data-val="collectmix" onclick="segToggle(this)">收藏合集</button>
               </div>
             </div>
             <div class="field set-conc">
@@ -778,12 +778,17 @@ async function loadConfig(){
     if(c.path){$('#cfgPath').value=c.path;$('#downloadPathText').textContent=c.path;}
     if(c.thread)$('#cfgThread').value=c.thread;
     if(c.rate_limit)$('#cfgRate').value=c.rate_limit;
-    // 真实暴露的 6 个模式（与后端 UserModeRegistry 对齐）。配置缺省时默认全选。
-    const realModes=["post","like","mix","music","collect","collectmix"];
+    // 真实暴露的 6 个模式。收藏类与作品类互斥；缺省时只选收藏（与后端默认配置一致）。
+    const collectModes=["collect","collectmix"];
     const sel=new Set();
     if(Array.isArray(c.mode)&&c.mode.length){c.mode.forEach(x=>sel.add(String(x).trim()));}
     else if(typeof c.mode==='string'&&c.mode.trim()){sel.add(c.mode.trim());}
-    if(sel.size===0)realModes.forEach(x=>sel.add(x));
+    if(sel.size===0)sel.add('collect');
+    const hasCollect=[...sel].some(m=>collectModes.includes(m));
+    const hasRegular=[...sel].some(m=>!collectModes.includes(m));
+    if(hasCollect&&hasRegular){
+      [...sel].forEach(m=>{if(!collectModes.includes(m))sel.delete(m);});
+    }
     document.querySelectorAll('#cfgModeSeg .seg-item').forEach(b=>b.classList.toggle('active',sel.has(b.dataset.val)));
     $('#cbCover').checked=c.cover!==!1;$('#cbJson').checked=c.json!==!1;
     $('#cbFolder').checked=c.folderstyle!==!1;$('#cbMusic').checked=!!c.music;
@@ -791,15 +796,34 @@ async function loadConfig(){
   }catch(e){}
 }
 
-// 多选切换（模式分段控件支持同时选多个真实模式）
+const COLLECT_MODES=new Set(['collect','collectmix']);
+
+// 同类可多选；点收藏会清掉作品类，点作品会清掉收藏类。
 function segToggle(el){
-  el.classList.toggle('active');
+  const turningOn=!el.classList.contains('active');
+  if(turningOn){
+    const pickingCollect=COLLECT_MODES.has(el.dataset.val);
+    document.querySelectorAll('#cfgModeSeg .seg-item').forEach(b=>{
+      const otherIsCollect=COLLECT_MODES.has(b.dataset.val);
+      if(pickingCollect? !otherIsCollect : otherIsCollect) b.classList.remove('active');
+    });
+    el.classList.add('active');
+  }else{
+    const remain=[...document.querySelectorAll('#cfgModeSeg .seg-item.active')].filter(b=>b!==el);
+    if(!remain.length){showToast('请至少保留一种下载模式','error');return;}
+    el.classList.remove('active');
+  }
 }
 
 async function saveSettings(){
-  // 聚合所有已选模式（真实 6 模式可多选）
   const ms=[...document.querySelectorAll('#cfgModeSeg .seg-item.active')].map(b=>b.dataset.val);
-  const mode = ms.length ? ms : ["post","like","mix","music","collect","collectmix"];
+  const mode = ms.length ? ms : ['collect'];
+  const hasCollect=mode.some(m=>COLLECT_MODES.has(m));
+  const hasRegular=mode.some(m=>!COLLECT_MODES.has(m));
+  if(hasCollect&&hasRegular){
+    showToast('收藏/收藏合集不能与作品/点赞/合集/音乐同时选择','error');
+    return false;
+  }
   const number={};
   mode.forEach(m=>number[m]=0);
   const d={path:$('#cfgPath').value,thread:parseInt($('#cfgThread').value)||2,
@@ -807,8 +831,10 @@ async function saveSettings(){
     cover:$('#cbCover').checked,json:$('#cbJson').checked,
     folderstyle:$('#cbFolder').checked,music:$('#cbMusic').checked,
     number:number,monitor_interval:parseInt($('#monitorInterval').value)||60};
-  await api('/api/config',{method:'POST',body:JSON.stringify(d)});
+  const r=await api('/api/config',{method:'POST',body:JSON.stringify(d)});
+  if(r&&r.error){showToast(r.error,'error');return false;}
   showToast('设置已保存','success');
+  return true;
 }
 
 async function browsePath(){
@@ -862,7 +888,8 @@ async function toggleDownload(){
   else{
     if(!cookieValid){showToast('请先点击「获取 Cookie」完成登录后再下载','error');return;}
     const p=$('#cfgPath').value.trim();if(!p){showToast('请先在「设置」中配置下载路径','error');return;}
-    await saveSettings();b.disabled=!0;const r=await api('/api/download/start',{method:'POST'});if(r.error){addErrorLog(r.error);showToast(r.error,'error');}b.disabled=!1;}
+    const saved=await saveSettings();if(!saved)return;
+    b.disabled=!0;const r=await api('/api/download/start',{method:'POST'});if(r.error){addErrorLog(r.error);showToast(r.error,'error');}b.disabled=!1;}
 }
 async function openDir(){await api('/api/download-dir/open',{method:'POST'});}
 async function browseConfig(){
