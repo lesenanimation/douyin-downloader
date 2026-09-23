@@ -1,0 +1,23 @@
+#!/bin/sh
+# pre-commit 防呆钩子：阻止把密码 / 密钥 / 私钥 / 敏感配置提交进仓库。
+#
+# 跳过方式（二者其一）：
+#   1) 在那一行行尾加注释   secret-scan:ignore
+#   2) git commit --no-verify     或   SKIP_SECRET_SCAN=1 git commit ...
+#
+# 安装（每个克隆一次）：
+#   git config core.hooksPath .githooks
+
+if [ "$SKIP_SECRET_SCAN" = "1" ]; then
+    exit 0
+fi
+
+HOOK_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
+
+PY=$(command -v python 2>/dev/null || command -v python3 2>/dev/null || command -v py 2>/dev/null)
+if [ -z "$PY" ]; then
+    echo "[secret-scan] 未找到 python，跳过密钥检查" >&2
+    exit 0
+fi
+
+exec "$PY" "$HOOK_DIR/secret_scan_pre_commit.py"

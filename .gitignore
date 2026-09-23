@@ -58,3 +58,9 @@ design/pencil-skill/
 .vscode/
 .omc/
 .gstack/
+
+# 备份/密钥类文件禁止入库（由密钥扫描加固添加）
+*.bak
+*.bak-*
+*.orig
+*.rej
