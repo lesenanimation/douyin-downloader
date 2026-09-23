@@ -867,18 +867,25 @@ function updateCookieUI(v){
     $('#btnFetch').style.display='';
   }
 }
-let cf=!1;
+let cf=!1,cs=!1;
+function resetCookieButtons(){
+  cf=!1;cs=!1;
+  const f=$('#btnFetch'),c=$('#btnConfirm');
+  if(f){f.disabled=!1;f.textContent='获取 Cookie';f.style.display='';}
+  if(c){c.disabled=!1;c.textContent='确认登录';c.style.display='none';}
+  const g=$('#cookieGuide');if(g)g.style.display='none';
+}
 async function fetchCookie(){
   if(cf)return;cf=!0;$('#btnFetch').disabled=!0;$('#btnFetch').textContent='启动中...';
   const r=await api('/api/cookie/fetch',{method:'POST'});
-  if(r.error){addErrorLog(r.error);showToast(r.error,'error');$('#btnFetch').disabled=!1;$('#btnFetch').textContent='获取 Cookie';cf=!1;return;}
-  $('#btnFetch').style.display='none';$('#btnConfirm').style.display='';$('#cookieGuide').style.display='';cf=!1;
+  if(r.error){addErrorLog(r.error);showToast(r.error,'error');resetCookieButtons();return;}
+  $('#btnFetch').style.display='none';$('#btnConfirm').style.display='';$('#btnConfirm').disabled=!1;$('#cookieGuide').style.display='';cf=!1;
 }
-let cs=!1;
 async function confirmCookie(){
   if(cs)return;cs=!0;$('#btnConfirm').disabled=!0;$('#btnConfirm').textContent='提取中...';
-  await api('/api/cookie/confirm',{method:'POST'});
-  setTimeout(()=>{$('#btnConfirm').style.display='none';$('#btnFetch').style.display='';$('#cookieGuide').style.display='none';cs=!1;},2000);
+  const r=await api('/api/cookie/confirm',{method:'POST'});
+  if(r&&r.error){addErrorLog(r.error);showToast(r.error,'error');resetCookieButtons();return;}
+  setTimeout(()=>{if(cs)resetCookieButtons();},8000);
 }
 
 // ── Download ──
@@ -923,13 +930,12 @@ function connectSSE(){
   sseSource.addEventListener('status',e=>{setStatus(JSON.parse(e.data).status);});
   sseSource.addEventListener('stats',e=>{updateStats(JSON.parse(e.data));});
   sseSource.addEventListener('progress',e=>{updateProgress(JSON.parse(e.data));});
-  sseSource.addEventListener('cookie',e=>{const d=JSON.parse(e.data);updateCookieUI(d.valid);if(d.valid)showToast('Cookie 获取成功','success');});
+  sseSource.addEventListener('cookie',e=>{const d=JSON.parse(e.data);updateCookieUI(d.valid);resetCookieButtons();if(d.ok===false){showToast(d.error||'Cookie 获取失败','error');}else if(d.valid){showToast('Cookie 获取成功','success');}});
   sseSource.addEventListener('monitor',e=>{updateMonitorUI(JSON.parse(e.data));});
-  sseSource.addEventListener('done',e=>{const d=JSON.parse(e.data);let m='下载完成！新下载 '+d.completed+' 个';if(d.skipped)m+='，跳过 '+d.skipped;if(d.failed)m+='，失败 '+d.failed;showToast(m,d.failed?'error':'success');updateFailedBtnBadge();
-    // 同步刷新进度区为完成状态
+  sseSource.addEventListener('done',e=>{const d=JSON.parse(e.data);const failed=d.ok===false||(d.failed||0)>0;let m=failed?(d.error||'下载失败'):('下载完成！新下载 '+(d.completed||0)+' 个');if(d.skipped)m+='，跳过 '+d.skipped;if(d.failed)m+='，失败 '+d.failed;showToast(m,failed?'error':'success');updateFailedBtnBadge();
     const total=(d.completed||0)+(d.skipped||0)+(d.failed||0);
-    updateProgress({percent:100,done:total,total:total,round_total:total,cumulative_total:d.cumulative_total||0,current_file:'',eta:0,speed:0,bytes:0});
-    $('#progSub').textContent='任务已完成';
+    updateProgress({percent:(failed&&!total)?0:100,done:total,total:total,round_total:total,cumulative_total:d.cumulative_total||0,current_file:'',eta:0,speed:0,bytes:0});
+    $('#progSub').textContent=failed?(d.error||'任务失败'):'任务已完成';
   });
   sseSource.addEventListener('git',e=>{const d=JSON.parse(e.data);appendLog(new Date().toLocaleTimeString('zh-CN',{hour12:!1}),'[git] '+d.msg);});
   sseSource.addEventListener('git_status',e=>{try{applyGitStatus(JSON.parse(e.data));}catch(_){}});

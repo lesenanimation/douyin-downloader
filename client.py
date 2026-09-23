@@ -64,7 +64,10 @@ def wait_for_app_server(*, host, port, expected_app_key, timeout=15.0,
     return False, None, last_error
 
 
-if FROZEN:
+# GUI 进程可以把 stdout 写进安装目录日志。下载/Cookie 子进程必须把
+# stdout/stderr 留给父进程管道，否则界面只能看到「启动浏览器」却看不到失败原因。
+_IS_WORKER = bool(os.environ.get('DOUYIN_WORKER'))
+if FROZEN and not _IS_WORKER:
     try:
         _log_file = open(LOG_PATH, 'a', encoding='utf-8')
         sys.stdout = _log_file
@@ -162,8 +165,10 @@ def main():
         try:
             from cli.main import main as _worker_main
             _worker_main()
-        except SystemExit:
-            pass
+        except SystemExit as exc:
+            code = exc.code
+            if code not in (0, None):
+                sys.exit(code if isinstance(code, int) else 1)
         return
     if FROZEN and os.environ.get('DOUYIN_WORKER') == 'cookie':
         try:

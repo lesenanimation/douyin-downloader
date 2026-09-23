@@ -61,6 +61,11 @@ class _FakeAPIClient:
         self.browser_call_kwargs: List[Dict[str, Any]] = []
         self.browser_post_items: Dict[str, Dict[str, Any]] = {}
         self.browser_post_stats: Dict[str, int] = {}
+        self.collection_browser_calls = 0
+        self.collection_browser_kwargs: List[Dict[str, Any]] = []
+        self.collection_browser_ids: List[str] = ["c-1", "c-2"]
+        self.browser_collection_items: Dict[str, Dict[str, Any]] = {}
+        self.browser_collection_stats: Dict[str, int] = {}
         self.homepage_screenshot_calls: List[tuple[str, Any, Dict[str, Any]]] = []
 
     async def get_user_info(self, sec_uid: str):
@@ -100,6 +105,21 @@ class _FakeAPIClient:
     def pop_browser_post_stats(self):
         data = self.browser_post_stats
         self.browser_post_stats = {}
+        return data
+
+    async def collect_user_collection_via_browser(self, **kwargs):
+        self.collection_browser_calls += 1
+        self.collection_browser_kwargs.append(dict(kwargs))
+        return list(self.collection_browser_ids)
+
+    def pop_browser_collection_aweme_items(self):
+        data = self.browser_collection_items
+        self.browser_collection_items = {}
+        return data
+
+    def pop_browser_collection_stats(self):
+        data = self.browser_collection_stats
+        self.browser_collection_stats = {}
         return data
 
 
@@ -429,3 +449,46 @@ def test_homepage_screenshot_skips_collect_context(tmp_path):
     )
 
     assert api_client.homepage_screenshot_calls == []
+
+
+def test_collection_browser_fallback_reuses_intercepted_items(tmp_path):
+    api_client = _FakeAPIClient()
+    api_client.browser_collection_items = {
+        "c-1": _make_aweme("c-1"),
+        "c-2": _make_aweme("c-2"),
+    }
+    downloader = _build_downloader(tmp_path, api_client, browser_enabled=True)
+    downloader.config._data["number"]["collect"] = 0
+
+    aweme_list = []
+    asyncio.run(downloader._recover_user_collection_with_browser(aweme_list))
+
+    assert [item["aweme_id"] for item in aweme_list] == ["c-1", "c-2"]
+    assert api_client.collection_browser_calls == 1
+    assert api_client.detail_calls == []
+
+
+def test_collection_browser_fallback_can_be_disabled(tmp_path):
+    api_client = _FakeAPIClient()
+    downloader = _build_downloader(tmp_path, api_client, browser_enabled=False)
+
+    aweme_list = []
+    asyncio.run(downloader._recover_user_collection_with_browser(aweme_list))
+
+    assert aweme_list == []
+    assert api_client.collection_browser_calls == 0
+    assert api_client.detail_calls == []
+
+
+def test_collection_browser_fallback_fetches_missing_details(tmp_path):
+    api_client = _FakeAPIClient()
+    api_client.browser_collection_items = {"c-1": _make_aweme("c-1")}
+    downloader = _build_downloader(tmp_path, api_client, browser_enabled=True)
+    downloader.config._data["number"]["collect"] = 0
+
+    aweme_list = []
+    asyncio.run(downloader._recover_user_collection_with_browser(aweme_list))
+
+    assert [item["aweme_id"] for item in aweme_list] == ["c-1", "c-2"]
+    assert api_client.detail_calls == ["c-2"]
+    assert all(call.get("suppress_error") is True for call in api_client.detail_call_kwargs)

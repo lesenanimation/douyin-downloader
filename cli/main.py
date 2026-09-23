@@ -191,7 +191,7 @@ async def main_async(args):
     if not Path(config_path).exists():
         if not (args.hot_board is not None or args.search or args.serve):
             display.print_error(f"Config file not found: {config_path}")
-            return
+            return 1
         # For ``--serve`` we still pass the (yet-missing) path so later
         # ``config.save()`` calls from the REST settings endpoint create
         # the file in the right place (e.g. Electron's userData dir).
@@ -232,7 +232,7 @@ async def main_async(args):
 
     if not config.validate():
         display.print_error("Invalid configuration: missing required fields")
-        return
+        return 1
 
     cookies = config.get_cookies()
     cookie_manager = CookieManager()
@@ -302,9 +302,11 @@ async def main_async(args):
         display.show_result(total_result)
 
         await _dispatch_notifications(config, total_result, len(urls))
-    else:
-        # 所有链接都失败时，也发通知（若启用）
-        await _dispatch_notifications(config, None, len(urls))
+        if total_result.success == 0 and total_result.skipped == 0:
+            return 1
+        return 0
+    await _dispatch_notifications(config, None, len(urls))
+    return 1
 
 
 async def _run_discovery_subcommand(
@@ -434,7 +436,9 @@ def main():
         set_console_log_level(logging.ERROR)
 
     try:
-        asyncio.run(main_async(args))
+        rc = asyncio.run(main_async(args))
+        if rc:
+            sys.exit(rc)
     except KeyboardInterrupt:
         display.print_warning("\nDownload interrupted by user")
         sys.exit(0)

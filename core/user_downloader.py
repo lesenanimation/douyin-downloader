@@ -587,3 +587,141 @@ class UserDownloader(BaseDownloader):
             return False
         eligible_items = item_filter(items) if item_filter else items
         return len(eligible_items) >= limit
+
+    async def _recover_user_collection_with_browser(
+        self,
+        aweme_list: List[Dict[str, Any]],
+    ) -> None:
+        browser_cfg = self.config.get("browser_fallback", {}) or {}
+        if not browser_cfg.get("enabled", True):
+            logger.info("Collection browser fallback skipped: disabled by config")
+            return
+
+        number_limit = int(self.config.get("number", {}).get("collect", 0) or 0)
+        if number_limit > 0 and len(aweme_list) >= number_limit:
+            logger.info(
+                "Collection browser fallback skipped: number limit reached existing=%s limit=%s",
+                len(aweme_list),
+                number_limit,
+            )
+            return
+
+        collect_fn = getattr(self.api_client, "collect_user_collection_via_browser", None)
+        if not callable(collect_fn):
+            logger.info("Collection browser fallback skipped: API client missing collector")
+            return
+
+        fallback_started = time.monotonic()
+        logger.info(
+            "Collection browser fallback started: existing=%s expected_count=%s headless=%s "
+            "max_scrolls=%s idle_rounds=%s timeout_s=%s",
+            len(aweme_list),
+            number_limit,
+            bool(browser_cfg.get("headless", False)),
+            int(browser_cfg.get("max_scrolls", 240) or 240),
+            int(browser_cfg.get("idle_rounds", 8) or 8),
+            int(browser_cfg.get("wait_timeout_seconds", 600) or 600),
+        )
+        try:
+            browser_aweme_ids = await collect_fn(
+                expected_count=number_limit,
+                headless=bool(browser_cfg.get("headless", False)),
+                max_scrolls=int(browser_cfg.get("max_scrolls", 240) or 240),
+                idle_rounds=int(browser_cfg.get("idle_rounds", 8) or 8),
+                wait_timeout_seconds=int(browser_cfg.get("wait_timeout_seconds", 600) or 600),
+            )
+        except Exception:
+            logger.exception(
+                "Collection browser fallback failed: duration_ms=%s",
+                int((time.monotonic() - fallback_started) * 1000),
+            )
+            return
+
+        browser_aweme_items: Dict[str, Dict[str, Any]] = {}
+        browser_stats: Dict[str, int] = {}
+        pop_items = getattr(self.api_client, "pop_browser_collection_aweme_items", None)
+        pop_stats = getattr(self.api_client, "pop_browser_collection_stats", None)
+        if callable(pop_items):
+            try:
+                browser_aweme_items = pop_items() or {}
+            except Exception as exc:
+                logger.debug("Fetch browser collection items skipped: %s", exc)
+        if callable(pop_stats):
+            try:
+                browser_stats = pop_stats() or {}
+            except Exception as exc:
+                logger.debug("Fetch browser collection stats skipped: %s", exc)
+
+        if not browser_aweme_ids:
+            logger.warning(
+                "Collection browser fallback returned no aweme_id: duration_ms=%s stats=%s",
+                int((time.monotonic() - fallback_started) * 1000),
+                browser_stats,
+            )
+            return
+
+        existing_ids = {str(item.get("aweme_id")) for item in aweme_list if item.get("aweme_id")}
+        missing_ids = [aweme_id for aweme_id in browser_aweme_ids if aweme_id not in existing_ids]
+        if not missing_ids:
+            logger.info(
+                "Collection browser fallback found no missing items: browser_ids=%s existing=%s "
+                "duration_ms=%s",
+                len(browser_aweme_ids),
+                len(existing_ids),
+                int((time.monotonic() - fallback_started) * 1000),
+            )
+            return
+
+        logger.warning(
+            "Recovering collection aweme details from browser list, missing count=%s",
+            len(missing_ids),
+        )
+        detail_failed = 0
+        detail_success = 0
+        reused_from_browser_items = 0
+        total_missing = len(missing_ids)
+        for index, aweme_id in enumerate(missing_ids, start=1):
+            if number_limit > 0 and len(aweme_list) >= number_limit:
+                break
+            if index == 1 or index == total_missing or index % 5 == 0:
+                self._progress_update_step("浏览器回补", "补全收藏详情 %s/%s" % (index, total_missing))
+
+            detail = browser_aweme_items.get(str(aweme_id))
+            if not detail:
+                try:
+                    await self.rate_limiter.acquire()
+                    detail = await self.api_client.get_video_detail(aweme_id, suppress_error=True)
+                except Exception as exc:
+                    detail_failed += 1
+                    logger.warning(
+                        "Collection browser fallback detail fetch failed for aweme_id=%s: %s",
+                        aweme_id,
+                        exc,
+                    )
+                    continue
+                if detail:
+                    detail_success += 1
+            else:
+                reused_from_browser_items += 1
+            if not detail:
+                detail_failed += 1
+                continue
+            aweme_list.append(detail)
+
+        self._progress_update_step(
+            "浏览器回补",
+            "收藏回补完成，复用 %s，补拉成功 %s，失败 %s"
+            % (reused_from_browser_items, detail_success, detail_failed),
+        )
+        logger.warning(
+            "Collection browser fallback summary: duration_ms=%s merged_ids=%s selected_ids=%s "
+            "items=%s pages=%s reused=%s detail_success=%s detail_failed=%s",
+            int((time.monotonic() - fallback_started) * 1000),
+            browser_stats.get("merged_ids", 0),
+            browser_stats.get("selected_ids", len(browser_aweme_ids)),
+            browser_stats.get("items", len(browser_aweme_items)),
+            browser_stats.get("pages", 0),
+            reused_from_browser_items,
+            detail_success,
+            detail_failed,
+        )

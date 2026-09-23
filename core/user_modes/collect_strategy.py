@@ -27,7 +27,33 @@ class CollectUserModeStrategy(BaseUserModeStrategy):
     async def collect_items(self, sec_uid: str, user_info: Dict[str, Any]) -> List[Dict[str, Any]]:
         if self._collects_id_filter:
             return await self._collect_single_folder(self._collects_id_filter)
-        return await self._collect_all_folders(sec_uid)
+
+        items: List[Dict[str, Any]] = []
+        collect_error: Optional[BaseException] = None
+        try:
+            items = await self._collect_all_folders(sec_uid)
+        except RuntimeError as exc:
+            collect_error = exc
+
+        if items:
+            return items
+        if collect_error is None:
+            return items
+
+        recovered: List[Dict[str, Any]] = []
+        await self._recover_with_browser(recovered)
+        if recovered:
+            return recovered
+        raise collect_error
+
+    async def _recover_with_browser(self, aweme_list: List[Dict[str, Any]]) -> None:
+        recover = getattr(self.downloader, "_recover_user_collection_with_browser", None)
+        if not callable(recover):
+            return
+        progress = getattr(self.downloader, "_progress_update_step", None)
+        if callable(progress):
+            progress("拉取收藏列表", "接口受限，尝试浏览器回补")
+        await recover(aweme_list)
 
     async def _collect_single_folder(self, collects_id: str) -> List[Dict[str, Any]]:
         """Paginate aweme entries for a single collection folder.

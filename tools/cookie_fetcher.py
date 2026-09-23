@@ -9,12 +9,20 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 import yaml
 
-from utils.cookie_utils import parse_cookie_header, sanitize_cookies
+from utils.cookie_utils import apply_cookie_aliases, parse_cookie_header, sanitize_cookies
 
 DEFAULT_URL = "https://www.douyin.com/"
 DEFAULT_OUTPUT = Path("config/cookies.json")
 REQUIRED_KEYS = {"msToken", "ttwid", "odin_tt", "passport_csrf_token"}
-SUGGESTED_KEYS = REQUIRED_KEYS | {"sid_guard", "sessionid", "sid_tt"}
+SUGGESTED_KEYS = REQUIRED_KEYS | {
+    "sid_guard",
+    "sessionid",
+    "sessionid_ss",
+    "sid_tt",
+    "uid_tt",
+    "uid_tt_ss",
+    "passport_csrf_token_default",
+}
 DEFAULT_AUXILIARY_KEYS = {
     "_waftokenid",
     "s_v_web_id",
@@ -25,6 +33,9 @@ DEFAULT_AUXILIARY_KEYS = {
     "d_ticket",
     "x-web-secsdk-uid",
     "__security_server_data_status",
+    "fpk1",
+    "fpk2",
+    "webid",
 }
 DEFAULT_AUXILIARY_PREFIXES = (
     "__security_mc_",
@@ -87,12 +98,23 @@ async def capture_cookies(args: argparse.Namespace) -> int:
         return 1
 
     async with async_playwright() as p:
-        browser_factory = getattr(p, args.browser)
-        browser = await browser_factory.launch(headless=args.headless)
+        from utils.browser_launch import launch_playwright_browser
+
+        try:
+            browser, source = await launch_playwright_browser(
+                p,
+                browser_name=args.browser,
+                headless=args.headless,
+            )
+        except Exception as exc:
+            print("[ERROR] 无法启动浏览器: %s" % exc, file=sys.stderr)
+            return 1
+        print("[INFO] Browser launched via %s" % source)
         context = await browser.new_context()
         page = await context.new_page()
         observed_cookie_headers: List[str] = []
         observed_mstokens: List[str] = []
+        observed_webids: List[str] = []
 
         def _on_request(request: Any) -> None:
             try:
@@ -107,6 +129,9 @@ async def capture_cookies(args: argparse.Namespace) -> int:
                 token = extract_ms_token_from_text(url)
                 if token:
                     observed_mstokens.append(token)
+                webid = extract_query_value_from_text(url, "webid")
+                if webid:
+                    observed_webids.append(webid)
             except Exception:
                 # 观察请求失败不应影响主流程
                 return
@@ -133,11 +158,16 @@ async def capture_cookies(args: argparse.Namespace) -> int:
             cookies["msToken"] = ms_token
             print("[INFO] Extracted msToken from alternate sources.")
 
+        webid = pick_observed_value(observed_webids)
+        if webid and not cookies.get("webid"):
+            cookies["webid"] = webid
+            print("[INFO] Extracted webid from observed requests.")
+
         await context.close()
         await browser.close()
 
     picked = cookies if args.include_all else filter_cookies(cookies)
-    picked = sanitize_cookies(picked)
+    picked = apply_cookie_aliases(sanitize_cookies(picked))
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(picked, ensure_ascii=False, indent=2), encoding="utf-8")
@@ -333,13 +363,17 @@ async def try_extract_ms_token(
 
 
 def extract_ms_token_from_text(text: str) -> Optional[str]:
-    if not text:
+    return extract_query_value_from_text(text, "msToken")
+
+
+def extract_query_value_from_text(text: str, key: str) -> Optional[str]:
+    if not text or not key:
         return None
 
     patterns = [
-        r"(?:^|[;,&\s\"'])msToken=([^;,&\s\"']+)",
-        r'"msToken"\s*:\s*"([^"]+)"',
-        r"'msToken'\s*:\s*'([^']+)'",
+        r"(?:^|[?;&,\s\"'])%s=([^;,&\s\"']+)" % re.escape(key),
+        r'"%s"\s*:\s*"([^"]+)"' % re.escape(key),
+        r"'%s'\s*:\s*'([^']+)'" % re.escape(key),
     ]
     for pattern in patterns:
         match = re.search(pattern, text)
@@ -349,6 +383,14 @@ def extract_ms_token_from_text(text: str) -> Optional[str]:
         if token:
             return unquote(token)
     return None
+
+
+def pick_observed_value(values: Sequence[str]) -> str:
+    for value in reversed(list(values or [])):
+        token = (value or "").strip()
+        if token:
+            return token
+    return ""
 
 
 def filter_cookies(cookies: Dict[str, str]) -> Dict[str, str]:
@@ -362,8 +404,8 @@ def filter_cookies(cookies: Dict[str, str]) -> Dict[str, str]:
             picked[key] = value
 
     if not picked:
-        return cookies
-    return picked
+        return apply_cookie_aliases(cookies)
+    return apply_cookie_aliases(picked)
 
 
 def update_config(config_path: Path, cookies: Dict[str, str]) -> None:

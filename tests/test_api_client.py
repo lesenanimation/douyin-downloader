@@ -16,6 +16,42 @@ def test_default_query_uses_existing_ms_token():
     assert params["msToken"] == "token-1"
 
 
+def test_default_query_fills_fingerprint_from_cookies():
+    client = DouyinAPIClient(
+        {
+            "msToken": "token-1",
+            "UIFID": "uifid-value",
+            "s_v_web_id": "verify-id",
+            "webid": "1234567890",
+            "sessionid": "sess-1",
+        }
+    )
+    params = asyncio.run(client._default_query())
+
+    assert params["uifid"] == "uifid-value"
+    assert params["verifyFp"] == "verify-id"
+    assert params["fp"] == "verify-id"
+    assert params["webid"] == "1234567890"
+    assert params["browser_version"] == "139.0.0.0"
+    assert params["engine_version"] == "139.0.0.0"
+    assert "Chrome/139.0.0.0" in client.headers["User-Agent"]
+    assert "Macintosh" not in client.headers["User-Agent"]
+    assert client.headers["uifid"] == "uifid-value"
+    assert client.headers["Origin"] == "https://www.douyin.com"
+    assert client.cookies["sessionid_ss"] == "sess-1"
+
+
+def test_default_query_omits_optional_fingerprint_when_cookies_missing():
+    client = DouyinAPIClient({"msToken": "token-1"})
+    params = asyncio.run(client._default_query())
+
+    assert params["uifid"] == ""
+    assert "verifyFp" not in params
+    assert "fp" not in params
+    assert "webid" not in params
+    assert "uifid" not in client.headers
+
+
 def test_build_signed_path_fallbacks_to_xbogus_when_abogus_disabled():
     client = DouyinAPIClient({"msToken": "token-1"})
     client._abogus_enabled = False
@@ -300,6 +336,173 @@ def test_browser_fallback_caps_warmup_wait(monkeypatch):
     stats = client.pop_browser_post_stats()
     assert stats["selected_ids"] == 0
     assert client.pop_browser_post_stats() == {}
+
+
+def test_browser_cookie_payload_excludes_login_by_default():
+    client = DouyinAPIClient(
+        {
+            "msToken": "token-1",
+            "sessionid": "sess-1",
+            "sessionid_ss": "sess-1",
+            "ttwid": "ttwid-1",
+        }
+    )
+    names = {cookie["name"] for cookie in client._browser_cookie_payload()}
+    assert "ttwid" in names
+    assert "msToken" in names
+    assert "sessionid" not in names
+    assert "sessionid_ss" not in names
+
+
+def test_browser_cookie_payload_includes_login_when_requested():
+    client = DouyinAPIClient(
+        {
+            "msToken": "token-1",
+            "sessionid": "sess-1",
+            "sessionid_ss": "sess-1",
+            "ttwid": "ttwid-1",
+        }
+    )
+    names = {
+        cookie["name"]
+        for cookie in client._browser_cookie_payload(include_login_cookies=True)
+    }
+    assert "sessionid" in names
+    assert "sessionid_ss" in names
+    assert "ttwid" in names
+
+
+def test_collect_user_collection_via_browser_opens_favorite_tab(monkeypatch):
+    captured = {}
+
+    class _FakeResponse:
+        def __init__(self, url, payload):
+            self.url = url
+            self._payload = payload
+
+        async def json(self):
+            return self._payload
+
+    class _FakeMouse:
+        async def wheel(self, _x, _y):
+            return
+
+    class _FakePage:
+        def __init__(self):
+            self.mouse = _FakeMouse()
+            self._response_handler = None
+
+        def on(self, event_name, callback):
+            if event_name == "response":
+                self._response_handler = callback
+
+        async def goto(self, url, **_kwargs):
+            captured["url"] = url
+            if self._response_handler:
+                self._response_handler(
+                    _FakeResponse(
+                        "https://www.douyin.com/aweme/v1/web/aweme/listcollection/?x=1",
+                        {"aweme_list": [{"aweme_id": "c-1", "desc": "from-browser"}]},
+                    )
+                )
+
+        async def title(self):
+            return "抖音"
+
+        def is_closed(self):
+            return False
+
+        async def wait_for_timeout(self, _ms):
+            return
+
+    class _FakeContext:
+        def __init__(self, page):
+            self._page = page
+            self.added_cookies = []
+
+        async def add_cookies(self, cookies):
+            self.added_cookies = cookies
+            captured["cookies"] = cookies
+
+        async def new_page(self):
+            return self._page
+
+        async def cookies(self, _base_url):
+            return []
+
+        async def close(self):
+            return
+
+    class _FakeBrowser:
+        def __init__(self, context):
+            self._context = context
+
+        async def new_context(self, **_kwargs):
+            return self._context
+
+        async def close(self):
+            return
+
+    class _FakeChromium:
+        def __init__(self, browser):
+            self._browser = browser
+
+        async def launch(self, **_kwargs):
+            return self._browser
+
+    class _FakePlaywright:
+        def __init__(self, chromium):
+            self.chromium = chromium
+
+    class _FakePlaywrightManager:
+        def __init__(self, playwright):
+            self._playwright = playwright
+
+        async def __aenter__(self):
+            return self._playwright
+
+        async def __aexit__(self, *_args):
+            return
+
+    page = _FakePage()
+    context = _FakeContext(page)
+    browser = _FakeBrowser(context)
+    chromium = _FakeChromium(browser)
+    playwright = _FakePlaywright(chromium)
+    manager = _FakePlaywrightManager(playwright)
+
+    fake_playwright_pkg = types.ModuleType("playwright")
+    fake_async_api = types.ModuleType("playwright.async_api")
+    fake_async_api.async_playwright = lambda: manager
+    monkeypatch.setitem(sys.modules, "playwright", fake_playwright_pkg)
+    monkeypatch.setitem(sys.modules, "playwright.async_api", fake_async_api)
+
+    client = DouyinAPIClient({"msToken": "token-1", "sessionid": "sess-1"})
+
+    async def _fake_extract(_page):
+        return []
+
+    monkeypatch.setattr(client, "_extract_aweme_ids_from_page", _fake_extract)
+
+    ids = asyncio.run(
+        client.collect_user_collection_via_browser(
+            expected_count=1,
+            headless=True,
+            max_scrolls=1,
+            idle_rounds=1,
+            wait_timeout_seconds=3,
+        )
+    )
+
+    assert ids == ["c-1"]
+    assert captured["url"].endswith("/user/self?showTab=favorite_collection")
+    cookie_names = {cookie["name"] for cookie in captured["cookies"]}
+    assert "sessionid" in cookie_names
+    items = client.pop_browser_collection_aweme_items()
+    assert items["c-1"]["desc"] == "from-browser"
+    stats = client.pop_browser_collection_stats()
+    assert stats["selected_ids"] == 1
+    assert stats["pages"] == 1
 
 
 @pytest.mark.asyncio

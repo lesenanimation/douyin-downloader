@@ -34,7 +34,8 @@ a = Analysis(
         "PyQt6.QtWebEngineWidgets", "PyQt6.QtWebChannel", "PyQt6.QtWebEngineCore",
         "PyQt6.QtWebEngineQuick",
         # tools
-        "tools.cookie_fetcher", "utils.cookie_utils",
+        "tools.cookie_fetcher", "utils.cookie_utils", "utils.browser_launch",
+        "playwright", "playwright.async_api", "playwright.sync_api",
         # storage
         "storage.database", "storage.file_manager",
         # config

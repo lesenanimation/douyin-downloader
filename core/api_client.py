@@ -4,7 +4,6 @@ import asyncio
 import base64
 import json
 import os
-import random
 import re
 import sys
 import time
@@ -15,7 +14,7 @@ from urllib.parse import urlencode
 import aiohttp
 
 from auth import MsTokenManager
-from utils.cookie_utils import sanitize_cookies
+from utils.cookie_utils import apply_cookie_aliases, sanitize_cookies
 from utils.logger import safe_log_url, setup_logger
 from utils.xbogus import XBogus
 
@@ -217,16 +216,15 @@ def _log_api_response(
     )
 
 
-_USER_AGENT_POOL = [
-    (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
-    ),
-    (
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
-    ),
-]
+# Keep UA, query fingerprint, and a_bogus signing on one Chrome/Windows
+# profile. A random Mac UA against browser_version=139 / Win32 is an
+# easy WAF tell; Douyin currently answers those with a sub-100ms 403.
+_DEFAULT_USER_AGENT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/139.0.0.0 Safari/537.36"
+)
+_CHROME_VERSION = "139.0.0.0"
+_SEC_CH_UA = '"Not;A=Brand";v="99", "Google Chrome";v="139", "Chromium";v="139"'
 
 
 class DouyinAPIClient:
@@ -249,19 +247,30 @@ class DouyinAPIClient:
     }
 
     def __init__(self, cookies: Dict[str, str], proxy: Optional[str] = None):
-        self.cookies = sanitize_cookies(cookies or {})
+        self.cookies = apply_cookie_aliases(sanitize_cookies(cookies or {}))
         self.proxy = str(proxy or "").strip()
         self._session: Optional[aiohttp.ClientSession] = None
         self._browser_post_aweme_items: Dict[str, Dict[str, Any]] = {}
         self._browser_post_stats: Dict[str, int] = {}
-        selected_ua = random.choice(_USER_AGENT_POOL)
+        self._browser_collection_aweme_items: Dict[str, Dict[str, Any]] = {}
+        self._browser_collection_stats: Dict[str, int] = {}
         self.headers = {
-            "User-Agent": selected_ua,
+            "User-Agent": _DEFAULT_USER_AGENT,
             "Referer": "https://www.douyin.com/?recommend=1",
-            "Accept": "*/*",
+            "Origin": "https://www.douyin.com",
+            "Accept": "application/json, text/plain, */*",
             "Accept-Encoding": "gzip, deflate",
             "Accept-Language": "zh-CN,zh;q=0.9,en-US;q=0.8,en;q=0.7",
+            "sec-ch-ua": _SEC_CH_UA,
+            "sec-ch-ua-mobile": "?0",
+            "sec-ch-ua-platform": '"Windows"',
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
         }
+        uifid = self._cookie_value("UIFID", "UIFID_TEMP")
+        if uifid:
+            self.headers["uifid"] = uifid
         self._signer = XBogus(self.headers["User-Agent"])
         self._ms_token_manager = MsTokenManager(user_agent=self.headers["User-Agent"])
         self._ms_token = (self.cookies.get("msToken") or "").strip()
@@ -308,9 +317,16 @@ class DouyinAPIClient:
                 self._session.cookie_jar.update_cookies({"msToken": self._ms_token})
         return self._ms_token
 
+    def _cookie_value(self, *keys: str) -> str:
+        for key in keys:
+            value = (self.cookies.get(key) or "").strip()
+            if value:
+                return value
+        return ""
+
     async def _default_query(self) -> Dict[str, Any]:
         ms_token = await self._ensure_ms_token()
-        return {
+        params: Dict[str, Any] = {
             "device_platform": "webapp",
             "aid": "6383",
             "channel": "channel_pc_web",
@@ -325,10 +341,10 @@ class DouyinAPIClient:
             "browser_language": "zh-CN",
             "browser_platform": "Win32",
             "browser_name": "Chrome",
-            "browser_version": "139.0.0.0",
+            "browser_version": _CHROME_VERSION,
             "browser_online": "true",
             "engine_name": "Blink",
-            "engine_version": "139.0.0.0",
+            "engine_version": _CHROME_VERSION,
             "os_name": "Windows",
             "os_version": "10",
             "cpu_core_num": "16",
@@ -339,9 +355,17 @@ class DouyinAPIClient:
             "round_trip_time": "200",
             "support_h265": "1",
             "support_dash": "1",
-            "uifid": "",
+            "uifid": self._cookie_value("UIFID", "UIFID_TEMP"),
             "msToken": ms_token,
         }
+        verify_fp = self._cookie_value("s_v_web_id")
+        if verify_fp:
+            params["verifyFp"] = verify_fp
+            params["fp"] = verify_fp
+        webid = self._cookie_value("webid")
+        if webid:
+            params["webid"] = webid
+        return params
 
     def sign_url(self, url: str) -> Tuple[str, str]:
         signed_url, _xbogus, ua = self._signer.build(url)
@@ -1359,6 +1383,8 @@ class DouyinAPIClient:
         try:
             target.parent.mkdir(parents=True, exist_ok=True)
             async with async_playwright() as playwright:
+                from utils.browser_launch import launch_playwright_browser
+
                 launch_options: Dict[str, Any] = {
                     "headless": True,
                     "args": [
@@ -1373,7 +1399,10 @@ class DouyinAPIClient:
                         proxy = "socks5://" + proxy[len("socks5h://") :]
                     launch_options["proxy"] = {"server": proxy}
 
-                browser = await playwright.chromium.launch(**launch_options)
+                browser, source = await launch_playwright_browser(
+                    playwright, **launch_options
+                )
+                logger.info("Homepage screenshot browser launched via %s", source)
                 try:
                     context = await browser.new_context(
                         user_agent=self.headers.get("User-Agent", ""),
@@ -1477,35 +1506,47 @@ class DouyinAPIClient:
             logger.warning("Failed to request Electron homepage screenshot: %s", exc)
             return False
 
-    async def collect_user_post_ids_via_browser(
+    @staticmethod
+    def _url_matches_markers(url: str, markers: Tuple[str, ...]) -> bool:
+        if not url or not markers:
+            return False
+        return any(marker in url for marker in markers)
+
+    async def _run_browser_aweme_scrape(
         self,
-        sec_uid: str,
         *,
+        target_url: str,
+        intercept_markers: Tuple[str, ...],
         expected_count: int = 0,
         headless: bool = False,
         max_scrolls: int = 240,
         idle_rounds: int = 8,
         wait_timeout_seconds: int = 600,
-    ) -> List[str]:
-        browser_started = time.monotonic()
+        include_login_cookies: bool = False,
+        log_label: str = "browser",
+    ) -> Dict[str, Any]:
+        empty: Dict[str, Any] = {
+            "selected_ids": [],
+            "merged_ids": [],
+            "api_ids": [],
+            "aweme_items": {},
+            "api_pages": 0,
+        }
         try:
             from playwright.async_api import async_playwright
         except Exception as exc:
-            logger.warning("Playwright not available, browser fallback disabled: %s", exc)
-            return []
+            logger.warning("Playwright not available, %s fallback disabled: %s", log_label, exc)
+            return empty
 
-        target_url = f"{self.BASE_URL}/user/{sec_uid}"
         timeout_ms = max(30, int(wait_timeout_seconds)) * 1000
         ids: List[str] = []
         seen: set[str] = set()
-        post_api_ids: List[str] = []
-        post_api_seen: set[str] = set()
-        post_api_aweme_items: Dict[str, Dict[str, Any]] = {}
-        post_api_page_hits = 0
-        self._browser_post_aweme_items = {}
-        self._browser_post_stats = {}
+        api_ids: List[str] = []
+        api_seen: set[str] = set()
+        aweme_items: Dict[str, Dict[str, Any]] = {}
+        api_pages = 0
 
-        def _merge(new_ids: List[str]):
+        def _merge(new_ids: List[str]) -> None:
             for aweme_id in new_ids:
                 if aweme_id and aweme_id not in seen:
                     seen.add(aweme_id)
@@ -1513,23 +1554,21 @@ class DouyinAPIClient:
 
         logger.warning(
             "API翻页受限，启动浏览器兜底采集：target=%s expected_count=%s "
-            "headless=%s max_scrolls=%s idle_rounds=%s timeout_s=%s",
+            "headless=%s max_scrolls=%s idle_rounds=%s timeout_s=%s label=%s",
             safe_log_url(target_url),
             expected_count,
             headless,
             max_scrolls,
             idle_rounds,
             wait_timeout_seconds,
+            log_label,
         )
 
         async with async_playwright() as playwright:
-            executable_path = str(getattr(playwright.chromium, "executable_path", "") or "")
-            logger.info(
-                "Browser fallback runtime: executable=%s exists=%s",
-                executable_path or "-",
-                bool(executable_path and os.path.exists(executable_path)),
-            )
-            browser = await playwright.chromium.launch(
+            from utils.browser_launch import launch_playwright_browser
+
+            browser, source = await launch_playwright_browser(
+                playwright,
                 headless=headless,
                 args=[
                     "--disable-blink-features=AutomationControlled",
@@ -1537,16 +1576,21 @@ class DouyinAPIClient:
                     "--no-sandbox",
                 ],
             )
+            logger.info("Browser fallback launched via %s", source)
             context = await browser.new_context(
                 user_agent=self.headers.get("User-Agent", ""),
                 locale="zh-CN",
                 viewport={"width": 1600, "height": 900},
             )
-            cookies = self._browser_cookie_payload()
+            cookies = self._browser_cookie_payload(
+                include_login_cookies=include_login_cookies,
+            )
             logger.info(
-                "Browser fallback context ready: cookie_count=%s cookie_names=%s",
+                "Browser fallback context ready: cookie_count=%s cookie_names=%s "
+                "login_cookies=%s",
                 len(cookies),
                 ",".join(sorted(str(cookie.get("name")) for cookie in cookies)) or "-",
+                include_login_cookies,
             )
             if cookies:
                 await context.add_cookies(cookies)
@@ -1555,33 +1599,34 @@ class DouyinAPIClient:
             pending_response_tasks: List[asyncio.Task] = []
 
             async def _handle_response(response):
-                nonlocal post_api_page_hits
+                nonlocal api_pages
                 url = response.url or ""
-                if "/aweme/v1/web/aweme/post/" not in url:
+                if not self._url_matches_markers(url, intercept_markers):
                     return
                 try:
                     data = await response.json()
                 except Exception:
                     return
-                aweme_items = data.get("aweme_list") if isinstance(data, dict) else None
-                if isinstance(aweme_items, list):
-                    post_api_page_hits += 1
-                    extracted: List[str] = []
-                    for item in aweme_items:
-                        if not isinstance(item, dict):
-                            continue
-                        aweme_id = item.get("aweme_id")
-                        if not aweme_id:
-                            continue
-                        aweme_id_str = str(aweme_id)
-                        extracted.append(aweme_id_str)
-                        if aweme_id_str not in post_api_aweme_items:
-                            post_api_aweme_items[aweme_id_str] = item
-                    _merge(extracted)
-                    for aweme_id in extracted:
-                        if aweme_id not in post_api_seen:
-                            post_api_seen.add(aweme_id)
-                            post_api_ids.append(aweme_id)
+                aweme_list = data.get("aweme_list") if isinstance(data, dict) else None
+                if not isinstance(aweme_list, list):
+                    return
+                api_pages += 1
+                extracted: List[str] = []
+                for item in aweme_list:
+                    if not isinstance(item, dict):
+                        continue
+                    aweme_id = item.get("aweme_id")
+                    if not aweme_id:
+                        continue
+                    aweme_id_str = str(aweme_id)
+                    extracted.append(aweme_id_str)
+                    if aweme_id_str not in aweme_items:
+                        aweme_items[aweme_id_str] = item
+                _merge(extracted)
+                for aweme_id in extracted:
+                    if aweme_id not in api_seen:
+                        api_seen.add(aweme_id)
+                        api_ids.append(aweme_id)
 
             def _on_response(response):
                 pending_response_tasks.append(asyncio.create_task(_handle_response(response)))
@@ -1613,7 +1658,7 @@ class DouyinAPIClient:
                             "检测到验证码页面且当前为 headless 模式，无法人工验证。"
                             "请将 browser_fallback.headless 设为 false。"
                         )
-                        return []
+                        return empty
                     logger.warning("检测到验证码页面，请在浏览器中完成验证，程序会自动继续采集。")
                     await self._wait_for_manual_verification(
                         page, wait_timeout_seconds=wait_timeout_seconds
@@ -1679,27 +1724,117 @@ class DouyinAPIClient:
 
         selected_ids: List[str] = []
         selected_seen: set[str] = set()
-        for aweme_id in post_api_ids + ids:
+        for aweme_id in api_ids + ids:
             if aweme_id and aweme_id not in selected_seen:
                 selected_seen.add(aweme_id)
                 selected_ids.append(aweme_id)
-        self._browser_post_aweme_items = post_api_aweme_items
+        return {
+            "selected_ids": selected_ids,
+            "merged_ids": ids,
+            "api_ids": api_ids,
+            "aweme_items": aweme_items,
+            "api_pages": api_pages,
+        }
+
+    async def collect_user_post_ids_via_browser(
+        self,
+        sec_uid: str,
+        *,
+        expected_count: int = 0,
+        headless: bool = False,
+        max_scrolls: int = 240,
+        idle_rounds: int = 8,
+        wait_timeout_seconds: int = 600,
+    ) -> List[str]:
+        browser_started = time.monotonic()
+        self._browser_post_aweme_items = {}
+        self._browser_post_stats = {}
+        result = await self._run_browser_aweme_scrape(
+            target_url=f"{self.BASE_URL}/user/{sec_uid}",
+            intercept_markers=("/aweme/v1/web/aweme/post/",),
+            expected_count=expected_count,
+            headless=headless,
+            max_scrolls=max_scrolls,
+            idle_rounds=idle_rounds,
+            wait_timeout_seconds=wait_timeout_seconds,
+            include_login_cookies=False,
+            log_label="post",
+        )
+        selected_ids = list(result.get("selected_ids") or [])
+        aweme_items = result.get("aweme_items") or {}
+        api_ids = result.get("api_ids") or []
+        merged_ids = result.get("merged_ids") or []
+        api_pages = int(result.get("api_pages") or 0)
+        self._browser_post_aweme_items = aweme_items if isinstance(aweme_items, dict) else {}
         self._browser_post_stats = {
-            "merged_ids": len(ids),
-            "post_api_ids": len(post_api_ids),
+            "merged_ids": len(merged_ids),
+            "post_api_ids": len(api_ids),
             "selected_ids": len(selected_ids),
-            "post_items": len(post_api_aweme_items),
-            "post_pages": post_api_page_hits,
+            "post_items": len(self._browser_post_aweme_items),
+            "post_pages": api_pages,
         }
         logger.warning(
             "浏览器兜底采集 aweme_id: duration_ms=%s merged=%s from_post_api=%s "
             "selected=%s post_items=%s post_pages=%s",
             _elapsed_ms(browser_started),
-            len(ids),
-            len(post_api_ids),
+            len(merged_ids),
+            len(api_ids),
             len(selected_ids),
-            len(post_api_aweme_items),
-            post_api_page_hits,
+            len(self._browser_post_aweme_items),
+            api_pages,
+        )
+        return selected_ids
+
+    async def collect_user_collection_via_browser(
+        self,
+        *,
+        expected_count: int = 0,
+        headless: bool = False,
+        max_scrolls: int = 240,
+        idle_rounds: int = 8,
+        wait_timeout_seconds: int = 600,
+    ) -> List[str]:
+        browser_started = time.monotonic()
+        self._browser_collection_aweme_items = {}
+        self._browser_collection_stats = {}
+        result = await self._run_browser_aweme_scrape(
+            target_url=f"{self.BASE_URL}/user/self?showTab=favorite_collection",
+            intercept_markers=(
+                "/aweme/v1/web/aweme/listcollection/",
+                "/aweme/v1/web/collects/video/list/",
+            ),
+            expected_count=expected_count,
+            headless=headless,
+            max_scrolls=max_scrolls,
+            idle_rounds=idle_rounds,
+            wait_timeout_seconds=wait_timeout_seconds,
+            include_login_cookies=True,
+            log_label="collection",
+        )
+        selected_ids = list(result.get("selected_ids") or [])
+        aweme_items = result.get("aweme_items") or {}
+        api_ids = result.get("api_ids") or []
+        merged_ids = result.get("merged_ids") or []
+        api_pages = int(result.get("api_pages") or 0)
+        self._browser_collection_aweme_items = (
+            aweme_items if isinstance(aweme_items, dict) else {}
+        )
+        self._browser_collection_stats = {
+            "merged_ids": len(merged_ids),
+            "api_ids": len(api_ids),
+            "selected_ids": len(selected_ids),
+            "items": len(self._browser_collection_aweme_items),
+            "pages": api_pages,
+        }
+        logger.warning(
+            "浏览器兜底采集收藏: duration_ms=%s merged=%s from_api=%s "
+            "selected=%s items=%s pages=%s",
+            _elapsed_ms(browser_started),
+            len(merged_ids),
+            len(api_ids),
+            len(selected_ids),
+            len(self._browser_collection_aweme_items),
+            api_pages,
         )
         return selected_ids
 
@@ -1713,12 +1848,24 @@ class DouyinAPIClient:
         self._browser_post_stats = {}
         return stats
 
-    def _browser_cookie_payload(self) -> List[Dict[str, str]]:
+    def pop_browser_collection_aweme_items(self) -> Dict[str, Dict[str, Any]]:
+        items = self._browser_collection_aweme_items
+        self._browser_collection_aweme_items = {}
+        return items
+
+    def pop_browser_collection_stats(self) -> Dict[str, int]:
+        stats = self._browser_collection_stats
+        self._browser_collection_stats = {}
+        return stats
+
+    def _browser_cookie_payload(
+        self, *, include_login_cookies: bool = False
+    ) -> List[Dict[str, str]]:
         payload: List[Dict[str, str]] = []
         for name, value in self.cookies.items():
             if not name:
                 continue
-            if name in self._BROWSER_COOKIE_BLOCKLIST:
+            if not include_login_cookies and name in self._BROWSER_COOKIE_BLOCKLIST:
                 continue
             payload.append(
                 {

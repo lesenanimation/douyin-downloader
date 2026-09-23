@@ -35,7 +35,10 @@ else:
     CONFIG_PATH = BUNDLE_DIR / 'config.yml'
 PYTHON_EXE = sys.executable
 ANSI_RE = re.compile(r'\x1b(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
-_DOWNLOAD_ERROR_RE = re.compile(r'Download error for (.+?):')
+_DOWNLOAD_ERROR_RE = re.compile(
+    r'(?:Download (?:error|failed)|下载失败|下载出错)\s*(?:for\s+)?(.+?)(?:[:：]|$)',
+    re.IGNORECASE,
+)
 _RETRY_RE = re.compile(r'retrying in \d+s', re.IGNORECASE)
 # 进度解析：作品总数 / 当前文件 / 已传字节
 _TOTAL_RE = re.compile(r'(?:共|total of|found)\s*(\d+)\s*(?:个作品|works|videos|items)?', re.IGNORECASE)
@@ -319,6 +322,7 @@ def start_cookie_fetch():
     _broadcast('status', {'status': 'fetching_cookie'})
 
     def run():
+        rc = 1
         try:
             if FROZEN:
                 cmd = [PYTHON_EXE, '--config', str(CONFIG_PATH)]
@@ -333,15 +337,26 @@ def start_cookie_fetch():
             for line in iter(proc.stdout.readline, ''):
                 _add_log(line)
             proc.wait()
-            _add_log(f'Cookie 获取流程结束 (code {proc.returncode})')
+            rc = proc.returncode if proc.returncode is not None else 1
+            if rc:
+                _add_log('Cookie 获取失败 (code %s)。打包版需要本机已安装 Chrome 或 Edge。' % rc)
+            else:
+                _add_log('Cookie 获取流程结束 (code 0)')
         except Exception as e:
-            _add_log(f'Cookie 获取出错: {e}')
+            rc = 1
+            _add_log('Cookie 获取出错: %s' % e)
         finally:
+            cookies = _load_config().get('cookies', {}) or {}
+            valid = bool(cookies.get('ttwid') or cookies.get('odin_tt'))
             with _lock:
                 _state['status'] = 'idle'
                 _state['process'] = None
             _broadcast('status', {'status': 'idle'})
-            _broadcast('cookie', {'valid': _load_config().get('cookies', {}).get('ttwid', '') != ''})
+            _broadcast('cookie', {
+                'valid': valid,
+                'ok': rc == 0,
+                'error': None if rc == 0 else 'Cookie 获取失败，请查看日志。打包版需要安装 Chrome 或 Edge',
+            })
 
     threading.Thread(target=run, daemon=True).start()
     return jsonify({'ok': True})
@@ -409,7 +424,14 @@ def _start_download_task(auto=False):
                     with _lock:
                         _state['stats']['completed'] += 1
                     _push_stats()
-                elif ('error' in lo or '失败' in line) and not _RETRY_RE.search(line):
+                elif (
+                    'download failed' in lo
+                    or 'download error' in lo
+                    or 'fatal error' in lo
+                    or '下载失败' in line
+                    or '下载出错' in line
+                    or (line.lstrip().startswith('✗') and '失败' in line)
+                ) and not _RETRY_RE.search(line):
                     with _lock:
                         _state['stats']['failed'] += 1
                     _push_stats()
@@ -420,8 +442,16 @@ def _start_download_task(auto=False):
             rc = proc.returncode
             with _lock:
                 stats = dict(_state['stats'])
+            if rc and stats['failed'] == 0 and stats['completed'] == 0:
+                stats['failed'] = 1
+                with _lock:
+                    _state['stats']['failed'] = 1
             base = _state['baseline_cumulative']
             stats['cumulative_total'] = (base + stats['completed']) if base >= 0 else _state['progress'].get('cumulative_total', 0)
+            stats['ok'] = rc == 0 and stats['failed'] == 0
+            stats['error'] = None if stats['ok'] else (
+                '下载失败，请查看日志。接口可能触发了反爬或 Cookie 已失效。'
+            )
             msg = f'{tag}下载任务结束 (code {rc})，新下载 {stats["completed"]} 个'
             if stats['skipped']:
                 msg += f'，跳过已下载 {stats["skipped"]} 个'
@@ -441,6 +471,9 @@ def _start_download_task(auto=False):
             _broadcast('done', stats)
         except Exception as e:
             _add_log(f'{tag}下载出错: {e}')
+            _broadcast('done', {
+                'completed': 0, 'skipped': 0, 'failed': 1, 'ok': False, 'error': str(e),
+            })
         finally:
             with _lock:
                 _state['status'] = 'idle'

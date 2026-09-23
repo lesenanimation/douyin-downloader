@@ -850,3 +850,103 @@ def test_collect_strategy_keeps_account_items_when_folder_list_fails():
     strategy = CollectUserModeStrategy(_Downloader())
     items = asyncio.run(strategy.collect_items("self", {"uid": "self"}))
     assert [item["aweme_id"] for item in items] == ["account-1"]
+
+
+def test_collect_strategy_recovers_via_browser_when_api_fails():
+    class _API:
+        async def get_user_collection(self, _sec_uid, max_cursor=0, count=20):
+            return {
+                "items": [],
+                "has_more": False,
+                "max_cursor": 0,
+                "status_code": -1,
+                "source": "failed",
+            }
+
+        async def get_user_collects(self, _sec_uid, max_cursor=0, count=20):
+            return {
+                "items": [],
+                "has_more": False,
+                "max_cursor": 0,
+                "status_code": -1,
+                "source": "failed",
+            }
+
+        async def get_collect_aweme(self, collects_id, max_cursor=0, count=20):
+            raise AssertionError("folder videos should not be fetched after folder-list failure")
+
+    class _Downloader:
+        def __init__(self):
+            self.api_client = _API()
+            self.rate_limiter = _NoopRateLimiter()
+            self.database = None
+            self.progress_steps = []
+            self.config = type(
+                "Cfg",
+                (),
+                {
+                    "get": lambda _self, key, default=None: {
+                        "number": {"collect": 0},
+                        "increase": {"collect": False},
+                        "browser_fallback": {"enabled": True},
+                    }.get(key, default)
+                },
+            )()
+            self._filter_by_time = lambda items: items
+            self._limit_count = lambda items, _mode: items
+
+        def _progress_update_step(self, step, detail=""):
+            self.progress_steps.append((step, detail))
+
+        async def _recover_user_collection_with_browser(self, aweme_list):
+            aweme_list.append(_make_aweme("browser-1"))
+
+    downloader = _Downloader()
+    strategy = CollectUserModeStrategy(downloader)
+    items = asyncio.run(strategy.collect_items("self", {"uid": "self"}))
+    assert [item["aweme_id"] for item in items] == ["browser-1"]
+    assert downloader.progress_steps[0][0] == "拉取收藏列表"
+
+
+def test_collect_strategy_single_folder_skips_browser_recovery():
+    class _API:
+        async def get_collect_aweme(self, collects_id, max_cursor=0, count=20):
+            assert collects_id == "folder-1"
+            return {
+                "items": [],
+                "has_more": False,
+                "max_cursor": 0,
+                "status_code": -1,
+                "source": "failed",
+            }
+
+    class _Downloader:
+        def __init__(self):
+            self.api_client = _API()
+            self.rate_limiter = _NoopRateLimiter()
+            self.database = None
+            self.browser_called = False
+            self.config = type(
+                "Cfg",
+                (),
+                {
+                    "get": lambda _self, key, default=None: {
+                        "number": {"collect": 0},
+                        "increase": {"collect": False},
+                    }.get(key, default)
+                },
+            )()
+            self._filter_by_time = lambda items: items
+            self._limit_count = lambda items, _mode: items
+
+        async def _recover_user_collection_with_browser(self, _aweme_list):
+            self.browser_called = True
+
+    downloader = _Downloader()
+    strategy = CollectUserModeStrategy(downloader, collects_id="folder-1")
+    try:
+        asyncio.run(strategy.collect_items("self", {"uid": "self"}))
+        raise AssertionError("single-folder API failure should still abort")
+    except RuntimeError:
+        pass
+    assert downloader.browser_called is False
